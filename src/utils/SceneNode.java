@@ -100,9 +100,9 @@ abstract public class SceneNode {
 	}
 	
 	public void draw (boolean drawBounds){
-		gl.glPushMatrix();		
-		gl.glScalef(scale[0], scale[1], scale[2]);
+		gl.glPushMatrix();				
 		gl.glTranslatef(trans[0], trans[1], trans[2]);
+		gl.glScalef(scale[0], scale[1], scale[2]);
 		gl.glRotatef(rot[0], 1, 0, 0);
 		gl.glRotatef(rot[1], 0, 1, 0);
 		gl.glRotatef(rot[2], 0, 0, 1);	
@@ -151,9 +151,9 @@ abstract public class SceneNode {
 			float[] childBounds = child.getTrueBounds();
 			float[] mat = new float[16];		
 			
-			mat = Matrix.genIdent();
+			mat = Matrix.genIdent();			
+			mat = Matrix.matMult(mat, Matrix.genTrans(transC[0], transC[1], transC[2]));
 			mat = Matrix.matMult(mat, Matrix.genScale(scaleC[0], scaleC[1], scaleC[2]));
-			mat = Matrix.matMult(mat, Matrix.genTrans(transC[0], transC[1], transC[2]));			
 			mat = Matrix.matMult(mat, Matrix.genRotX(rotC[0]));
 			mat = Matrix.matMult(mat, Matrix.genRotY(rotC[1]));
 			mat = Matrix.matMult(mat, Matrix.genRotZ(rotC[2]));
@@ -192,11 +192,11 @@ abstract public class SceneNode {
 		while (it.hasNext()){
 			SceneNode current = it.next();
 			
-			float vec[] = current.getScale();
-			matrix = Matrix.matMult(matrix, Matrix.genScale(vec[0], vec[1], vec[2]));
-			
-			vec = current.getTrans();
+			float vec[] = current.getTrans();
 			matrix = Matrix.matMult(matrix, Matrix.genTrans(vec[0], vec[1], vec[2]));
+			
+			vec = current.getScale();
+			matrix = Matrix.matMult(matrix, Matrix.genScale(vec[0], vec[1], vec[2]));
 			
 			vec = current.getRot();			
 			matrix = Matrix.matMult(matrix, Matrix.genRotX(vec[0]));
@@ -240,9 +240,9 @@ abstract public class SceneNode {
 		if (intersect){
 			
 		} else {
-			gl.glPushMatrix();		
-			gl.glScalef(scale[0], scale[1], scale[2]);
+			gl.glPushMatrix();					
 			gl.glTranslatef(trans[0], trans[1], trans[2]);
+			gl.glScalef(scale[0], scale[1], scale[2]);
 			gl.glRotatef(rot[0], 1, 0, 0);
 			gl.glRotatef(rot[1], 0, 1, 0);
 			gl.glRotatef(rot[2], 0, 0, 1);	
