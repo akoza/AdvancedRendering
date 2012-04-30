@@ -1,0 +1,129 @@
+struct vertexIN
+{  
+  float2 texcoord	: TEXCOORD0;  
+};
+
+float3 getEyePos(float x, float y, sampler2D depth, float4x4 projMatInv){
+	float d = tex2D(depth, float2(x,y)).r;
+	float4 eyePos = mul(projMatInv , float4(x,y,d,1.0));
+	eyePos /= eyePos.w;
+	return eyePos.xyz;
+}
+
+float3 camToEye(float x,float y,float depth, float4x4 projMatInv){
+	float4 eyePos = mul(projMatInv , float4(x,y, depth, 1.0));
+	eyePos /= eyePos.w; 
+	return eyePos.xyz;
+}
+
+float4 main(vertexIN vIN, 
+			uniform float pixelSizeX,
+			uniform float pixelSizeY,
+			uniform float4x4 projMat,
+			uniform float4x4 projMatInv,
+			uniform sampler2D tex : TEXUNIT0,
+			uniform sampler2D depth : TEXUNIT1):COLOR {
+
+	float samplingRadius = 0.008;
+	float intensityOffset = 0.1;
+	float debugBlend = 0.0;
+	float intensityFactor = 1.0;
+	float minPlaneDistance = 0.2;
+
+	float debugBorder = 0.0;
+	float maxBrightness = 1.0;
+	float radiusIncrease = 1.05;
+	int numSamples = 16;
+
+	float3 points[16] = vec3[16](
+		float3(-0.25444,-0.0589858,0.697345),
+		float3(0.487843,0.661275,0.427246),
+		float3(-0.298106,0.127501,0.59822),
+		float3(-0.0676845,0.801723,-0.021715),
+		float3(-0.311076,0.039659,0.377949),
+		float3(-0.401293,-0.822986,-0.360809),
+		float3(-0.382384,-0.0614385,0.301561),
+		float3(0.0197475,-0.770772,0.0465037),
+		float3(0.12617,0.357898,0.0743235),
+		float3(0.472344,0.503945,-0.0725119),
+		float3(-0.354711,-0.269181,0.35097),
+		float3(0.272704,-0.29374,0.858466),
+		float3(-0.142453,-0.363622,-0.382014),
+		float3(0.192463,0.380795,-0.633324),
+		float3(-0.45662,0.477546,-0.391975),
+		float3(-0.2087,-0.172308,0.532069)
+	);
+
+	float x = vIN.texcoord.x;
+	float y = vIN.texcoord.y;
+
+	float3 eyeSpacePos;
+	
+		float d = tex2D(depth, float2(x,y)).r;
+		if (d>0.9999){
+			return float4(tex2D(tex, float2(x,y)).rgb, 1);
+		}	
+	
+	eyeSpacePos = camToEye(x,y,d, projMatInv);
+	float r = samplingRadius * -eyeSpacePos.z;
+	
+	float3 approxNormal;
+		
+		float3 p1 = getEyePos(x+pixelSizeX, y, depth, projMatInv);
+		float3 p2 = getEyePos(x, y-pixelSizeY, depth, projMatInv);
+		float3 p3 = getEyePos(x-pixelSizeX, y, depth, projMatInv);
+		
+		float3 normal1 = normalize(cross(p2-eyeSpacePos,p1-eyeSpacePos));
+		float3 normal2 = normalize(cross(p3-eyeSpacePos,p2-eyeSpacePos));
+		approxNormal = normalize((normal1+normal2));	
+		
+	float blocking = 0.0;
+	float counter = 0.0;
+	for (int i = 0; i < numSamples; i++){
+			
+		float3 point = points[i%16];
+		if(i>16){
+			point = reflect(point,normalize(float3( float((i*100)%17-8) ,float((i*1170)%17-8),float((i*769)%17-8))));
+			r*=radiusIncrease; 
+		}
+		
+		float distToNormalPlane = dot(point, approxNormal);
+		if (abs(distToNormalPlane) < minPlaneDistance)
+			continue;
+		else
+			if (distToNormalPlane < 0.0)
+				point = reflect(point, approxNormal);
+			
+		float3 eyeSpaceSamplePoint = eyeSpacePos + r*point;
+		float4 screenSpaceSamplePoint = mul(projMat, float4(eyeSpaceSamplePoint, 1.0));
+		screenSpaceSamplePoint /= screenSpaceSamplePoint.w;
+		
+		if (screenSpaceSamplePoint.x < 0.0 ||
+			screenSpaceSamplePoint.x > 1.0 ||
+			screenSpaceSamplePoint.y < 0.0 ||
+			screenSpaceSamplePoint.y > 1.0)
+			continue;
+			
+		counter += 1.0;
+		float zd = 0.0;
+		
+		float diff = getEyePos(screenSpaceSamplePoint.x, screenSpaceSamplePoint.y, depth, projMatInv).z;
+		if (diff > 0.0)
+			zd = 5.0/(diff*diff);
+		blocking += 1.0/(1.0+zd*zd);		
+	}	
+	blocking += intensityFactor;
+	
+	float3 baseColor = tex2D(tex, float2(x,y)).xyz;
+	if (x >= debugBorder){
+		baseColor = mix(baseColor, float3(1.0,1.0,1.0), debugBlend);
+		
+		float cY = 0.299 * baseColor.r + 0.587 * baseColor.g + 0.144 * baseColor.b;
+		float cU = (baseColor.b-cY) * 0.493;
+		float cV = (baseColor.r-cY) * 0.877;
+		cY *= min(blocking/counter + intensityOffset, maxBrightness);
+		baseColor = float3(cY+cV/0.877, cY-0.39466*cU - 0.5806*cV, cY+cU/0.493);		
+	}
+	
+	return float4(baseColor,1);
+}
