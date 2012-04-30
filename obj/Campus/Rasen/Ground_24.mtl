@@ -1,0 +1,96 @@
+newmtl AM_Ground_001SG
+illum 4
+Kd 0.25 0.38 0.19
+Ka 0.02 0.05 0.03
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl A_Ground_002SG
+illum 4
+Kd 0.48 0.45 0.45
+Ka 0.22 0.20 0.20
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl H_hearings_H1SG
+illum 4
+Kd 0.43 0.36 0.33
+Ka 0.28 0.31 0.36
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl L_main_003SG
+illum 4
+Kd 0.23 0.24 0.25
+Ka 0.28 0.31 0.36
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl ME_Treppe_005_Treppenteil_010SG
+illum 4
+Kd 0.32 0.30 0.32
+Ka 0.18 0.15 0.18
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl N_Flubalk_002SG
+illum 4
+Kd 0.48 0.52 0.54
+Ka 0.28 0.31 0.36
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl N_Flubalk_Reling_001SG
+illum 4
+Kd 0.42 0.39 0.39
+Ka 0.28 0.31 0.36
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl N_Kern_E_001SG
+illum 4
+Kd 0.42 0.39 0.39
+Ka 0.28 0.31 0.36
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl O_Ground_004SG
+illum 4
+Kd 0.46 0.51 0.58
+Ka 0.28 0.31 0.36
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl W_mainSG
+illum 4
+Kd 0.67 0.69 0.72
+Ka 0.28 0.31 0.36
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl ambient_ground_walk_001SG
+illum 4
+Kd 0.38 0.39 0.38
+Ka 0.17 0.18 0.17
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
+newmtl ambient_street_002SG
+illum 4
+Kd 0.21 0.20 0.23
+Ka 0.08 0.08 0.09
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.00 0.00 0.00
+Ns -0.00
