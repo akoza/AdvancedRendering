@@ -1,0 +1,81 @@
+\documentclass{beamer}
+
+\mode<presentation>
+{
+  %\usetheme{AnnArbor}
+  \usetheme{Montpellier}
+  %\usetheme{Hannover}
+  %\usetheme{Singapore}
+  %\usetheme{Madrid}
+}
+
+\newcommand*\oldmacro{}
+\let\oldmacro\insertshorttitle% ursprüngliche Definition sichern
+\renewcommand*\insertshorttitle{%
+  \oldmacro
+  \hfill\insertframenumber\,/\,\inserttotalframenumber}
+
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage[german]{babel}
+
+%\usepackage[latin1]{inputenc}
+\usepackage[utf8]{inputenc}
+
+\usepackage{hyperref}
+
+% WTF? times? serious?
+%\usepackage{times}
+\usepackage[T1]{fontenc}
+
+\usepackage{listings}
+
+\usepackage{tabularx}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\title[Project Proposal]{Advanced Rendering \\ Project Proposal}
+
+%\subtitle {Untertitel} (optional)
+
+\author[Brauer, Heppner, Koza]
+{S. Brauer \and S. Heppner \and A. Koza}
+
+\institute[University of Paderborn]{Institute for Computer Science}
+
+\date{\today}
+
+
+\subject{Computer Science}
+
+\pgfdeclareimage[height=0.5cm]{university-logo}{figures/upb_logo.png}
+\logo{\pgfuseimage{university-logo}}
+
+
+
+% Folgendes sollte gelöscht werden, wenn man nicht am Anfang jedes
+% Unterabschnitts die Gliederung nochmal sehen möchte.
+%\AtBeginSubsection[]
+%{
+%  \begin{frame}<beamer>{Gliederung}
+%    \tableofcontents[currentsection,currentsubsection]
+%  \end{frame}
+%}
+
+
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Erste Folie}
+	\begin{itemize}
+		\item Stichpunkte
+		\item Mehr Stichpunkte
+		\item \alert{wichtige stichpunkte}
+	\end{itemize}
+\end{frame}
+
+
+\end{document}
