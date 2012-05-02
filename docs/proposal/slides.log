@@ -1,13 +1,13 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2011) (format=pdflatex 2011.7.3)  2 MAY 2012 17:54
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (TeX Live 2011) (format=pdflatex 2011.11.5)  2 MAY 2012 19:43
 entering extended mode
  \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
 **slides.tex
 (./slides.tex
-LaTeX2e <2009/09/24>
-Babel <v3.8l> and hyphenation patterns for english, dumylang, nohyphenation, ge
-rman-x-2009-06-19, ngerman-x-2009-06-19, afrikaans, ancientgreek, ibycus, arabi
+LaTeX2e <2011/06/27>
+Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, ge
+rman-x-2011-07-01, ngerman-x-2011-07-01, afrikaans, ancientgreek, ibycus, arabi
 c, armenian, basque, bulgarian, catalan, pinyin, coptic, croatian, czech, danis
 h, dutch, ukenglish, usenglishmax, esperanto, estonian, ethiopic, farsi, finnis
 h, french, galician, german, ngerman, swissgerman, monogreek, greek, hungarian,
@@ -19,10 +19,10 @@ ian, spanish, swedish, turkish, turkmen, ukrainian, uppersorbian, welsh, loaded
 .
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamer.cls
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbasercs.sty
-Package: beamerbasercs 2010/06/12 (rcs-revision c3821710bb40)
+Package: beamerbasercs 2011/09/21 (rcs-revision 42a2c9debdc3)
 )
-Document Class: beamer 2010/06/21 development version 3.10 A class for typesett
-ing presentations (rcs-revision a6b1a8434d30)
+Document Class: beamer 2011/09/12 development version 3.12 A class for typesett
+ing presentations (rcs-revision 70f9d8411e54)
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbasemodes.sty
 Package: beamerbasemodes 2010/05/01 (rcs-revision efa082c6111d)
 \beamer@tempbox=\box26
@@ -36,6 +36,10 @@ Package: beamerbasedecode 2010/05/01 (rcs-revision efa082c6111d)
 )
 \beamer@commentbox=\box27
 \beamer@modecount=\count83
+)
+(/usr/local/texlive/2011/texmf-dist/tex/generic/oberdiek/ifpdf.sty
+Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
+Package ifpdf Info: pdfTeX in PDF mode is detected.
 )
 \headheight=\dimen102
 \headdp=\dimen103
@@ -93,10 +97,6 @@ Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
 (/usr/local/texlive/2011/texmf-dist/tex/latex/geometry/geometry.sty
 Package: geometry 2010/09/12 v5.6 Page Geometry
 
-(/usr/local/texlive/2011/texmf-dist/tex/generic/oberdiek/ifpdf.sty
-Package: ifpdf 2011/01/30 v2.3 Provides the ifpdf switch (HO)
-Package ifpdf Info: pdfTeX in PDF mode is detected.
-)
 (/usr/local/texlive/2011/texmf-dist/tex/generic/oberdiek/ifvtex.sty
 Package: ifvtex 2010/03/01 v1.5 Switches for detecting VTeX and its modes (HO)
 Package ifvtex Info: VTeX not detected.
@@ -358,7 +358,7 @@ Package: xxcolor 2003/10/24 ver 0.1
 \XC@countmixins=\count117
 )
 (/usr/local/texlive/2011/texmf-dist/tex/latex/hyperref/hyperref.sty
-Package: hyperref 2011/04/17 v6.82g Hypertext links for LaTeX
+Package: hyperref 2011/10/01 v6.82j Hypertext links for LaTeX
 
 (/usr/local/texlive/2011/texmf-dist/tex/generic/oberdiek/hobsub-hyperref.sty
 Package: hobsub-hyperref 2011/04/23 v1.4 Bundle oberdiek, subset hyperref (HO)
@@ -395,7 +395,6 @@ Package: letltxmacro 2010/09/02 v1.4 Let assignment for LaTeX macros (HO)
 Package: hopatch 2011/01/30 v1.0 Wrapper for package hooks (HO)
 Package: xcolor-patch 2011/01/30 xcolor patch
 Package: atveryend 2011/04/23 v1.7 Hooks at very end of document (HO)
-Package atveryend Info: \enddocument detected (standard).
 Package: atbegshi 2011/01/30 v1.15 At begin shipout hook (HO)
 Package: refcount 2010/12/01 v3.2 Data extraction from references (HO)
 Package: hycolor 2011/01/30 v1.7 Color options of hyperref/bookmark (HO)
@@ -408,42 +407,42 @@ Package: kvoptions 2010/12/23 v3.10 Keyval support for LaTeX options (HO)
 \Hy@pagecounter=\count119
 
 (/usr/local/texlive/2011/texmf-dist/tex/latex/hyperref/pd1enc.def
-File: pd1enc.def 2011/04/17 v6.82g Hyperref: PDFDocEncoding definition (HO)
+File: pd1enc.def 2011/10/01 v6.82j Hyperref: PDFDocEncoding definition (HO)
 )
 \Hy@SavedSpaceFactor=\count120
 
 (/usr/local/texlive/2011/texmf-dist/tex/latex/latexconfig/hyperref.cfg
 File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
 )
-Package hyperref Info: Option `bookmarks' set `true' on input line 3905.
-Package hyperref Info: Option `bookmarksopen' set `true' on input line 3905.
-Package hyperref Info: Option `implicit' set `false' on input line 3905.
-Package hyperref Info: Hyper figures OFF on input line 4026.
-Package hyperref Info: Link nesting OFF on input line 4031.
-Package hyperref Info: Hyper index ON on input line 4034.
-Package hyperref Info: Plain pages OFF on input line 4041.
-Package hyperref Info: Backreferencing OFF on input line 4046.
+Package hyperref Info: Option `bookmarks' set `true' on input line 3925.
+Package hyperref Info: Option `bookmarksopen' set `true' on input line 3925.
+Package hyperref Info: Option `implicit' set `false' on input line 3925.
+Package hyperref Info: Hyper figures OFF on input line 4046.
+Package hyperref Info: Link nesting OFF on input line 4051.
+Package hyperref Info: Hyper index ON on input line 4054.
+Package hyperref Info: Plain pages OFF on input line 4061.
+Package hyperref Info: Backreferencing OFF on input line 4066.
 Package hyperref Info: Implicit mode OFF; no redefinition of LaTeX internals.
-Package hyperref Info: Bookmarks ON on input line 4264.
+Package hyperref Info: Bookmarks ON on input line 4284.
 \c@Hy@tempcnt=\count121
 
 (/usr/local/texlive/2011/texmf-dist/tex/latex/url/url.sty
 \Urlmuskip=\muskip10
 Package: url 2006/04/12  ver 3.3  Verb mode for urls, etc.
 )
-LaTeX Info: Redefining \url on input line 4617.
+LaTeX Info: Redefining \url on input line 4637.
 \Fld@menulength=\count122
 \Field@Width=\dimen162
 \Fld@charsize=\dimen163
-Package hyperref Info: Hyper figures OFF on input line 5701.
-Package hyperref Info: Link nesting OFF on input line 5706.
-Package hyperref Info: Hyper index ON on input line 5709.
-Package hyperref Info: backreferencing OFF on input line 5716.
-Package hyperref Info: Link coloring OFF on input line 5721.
-Package hyperref Info: Link coloring with OCG OFF on input line 5726.
-Package hyperref Info: PDF/A mode OFF on input line 5731.
-LaTeX Info: Redefining \ref on input line 5771.
-LaTeX Info: Redefining \pageref on input line 5775.
+Package hyperref Info: Hyper figures OFF on input line 5723.
+Package hyperref Info: Link nesting OFF on input line 5728.
+Package hyperref Info: Hyper index ON on input line 5731.
+Package hyperref Info: backreferencing OFF on input line 5738.
+Package hyperref Info: Link coloring OFF on input line 5743.
+Package hyperref Info: Link coloring with OCG OFF on input line 5748.
+Package hyperref Info: PDF/A mode OFF on input line 5753.
+LaTeX Info: Redefining \ref on input line 5793.
+LaTeX Info: Redefining \pageref on input line 5797.
 \Hy@abspage=\count123
 
 
@@ -454,7 +453,7 @@ Package hyperref Message: Stopped early.
 Package hyperref Message: Driver (autodetected): hpdftex.
 
 (/usr/local/texlive/2011/texmf-dist/tex/latex/hyperref/hpdftex.def
-File: hpdftex.def 2011/04/17 v6.82g Hyperref driver for pdfTeX
+File: hpdftex.def 2011/10/01 v6.82j Hyperref driver for pdfTeX
 \Fld@listcount=\count124
 \c@bookmark@seq@number=\count125
 
@@ -470,7 +469,7 @@ Package: beamerbaserequires 2010/05/01  (rcs-revision efa082c6111d)
 y
 Package: beamerbasecompatibility 2010/07/12  (rcs-revision 6648c3177e4e)
 ) (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbasefont.sty
-Package: beamerbasefont 2010/05/10  (rcs-revision cd36e8a33c6b)
+Package: beamerbasefont 2010/10/26  (rcs-revision f39336aafb3c)
 
 (/usr/local/texlive/2011/texmf-dist/tex/latex/amsfonts/amssymb.sty
 Package: amssymb 2009/06/22 v3.00
@@ -498,16 +497,16 @@ Package: beamerbasemisc 2010/06/06  (rcs-revision bff0a9294b45)
 Package: beamerbasetwoscreens 2010/05/01  (rcs-revision efa082c6111d)
 )
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbaseoverlay.sty
-Package: beamerbaseoverlay 2010/05/07  (rcs-revision 5584dad462a9)
+Package: beamerbaseoverlay 2011/09/12  (rcs-revision 70f9d8411e54)
 \beamer@argscount=\count126
 \beamer@lastskipcover=\skip44
 \beamer@trivlistdepth=\count127
 )
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbasetitle.sty
-Package: beamerbasetitle 2010/06/12  (rcs-revision 717e481ca47a)
+Package: beamerbasetitle 2010/09/21  (rcs-revision f0446ed0b6ae)
 )
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbasesection.sty
-Package: beamerbasesection 2010/06/17  (rcs-revision e0d9401bb743)
+Package: beamerbasesection 2010/08/29  (rcs-revision e07e85b4cd4a)
 \c@lecture=\count128
 \c@part=\count129
 \c@section=\count130
@@ -515,7 +514,7 @@ Package: beamerbasesection 2010/06/17  (rcs-revision e0d9401bb743)
 \c@subsubsection=\count132
 )
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbaseframe.sty
-Package: beamerbaseframe 2010/06/06  (rcs-revision bff0a9294b45)
+Package: beamerbaseframe 2011/09/12  (rcs-revision 70f9d8411e54)
 \beamer@framebox=\box40
 \beamer@frametitlebox=\box41
 \beamer@zoombox=\box42
@@ -531,11 +530,11 @@ Package: beamerbaseframe 2010/06/06  (rcs-revision bff0a9294b45)
 \c@framenumber=\count136
 )
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbaseverbatim.sty
-Package: beamerbaseverbatim 2010/05/01  (rcs-revision efa082c6111d)
+Package: beamerbaseverbatim 2011/09/12  (rcs-revision 70f9d8411e54)
 \beamer@verbatimfileout=\write4
 )
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbaseframesize.sty
-Package: beamerbaseframesize 2010/06/27  (rcs-revision 6baa2d92e6f1)
+Package: beamerbaseframesize 2011/09/12  (rcs-revision 70f9d8411e54)
 \beamer@splitbox=\box43
 \beamer@autobreakcount=\count137
 \beamer@autobreaklastheight=\dimen165
@@ -544,7 +543,7 @@ Package: beamerbaseframesize 2010/06/27  (rcs-revision 6baa2d92e6f1)
 )
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbaseframecomponents.
 sty
-Package: beamerbaseframecomponents 2010/07/12  (rcs-revision 09e82992d9b1)
+Package: beamerbaseframecomponents 2011/09/12  (rcs-revision 70f9d8411e54)
 \beamer@footins=\box44
 ) (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbasecolor.sty
 Package: beamerbasecolor 2010/06/06  (rcs-revision d1a9b48be06d)
@@ -578,7 +577,7 @@ Package: beamerbaseboxes 2010/05/01  (rcs-revision efa082c6111d)
 ))
 (/usr/local/texlive/2011/texmf-dist/tex/latex/beamer/beamerbaselocalstructure.s
 ty
-Package: beamerbaselocalstructure 2010/06/01  (rcs-revision 81f9e33f7cc2)
+Package: beamerbaselocalstructure 2010/09/19  (rcs-revision 9224c5f3ce70)
  (/usr/local/texlive/2011/texmf-dist/tex/latex/tools/enumerate.sty
 Package: enumerate 1999/03/05 v3.00 enumerate extensions (DPC)
 \@enLab=\toks28
@@ -699,13 +698,13 @@ Package: beamerthemeMontpellier 2010/06/17  (rcs-revision d02a7cf4d8ae)
 emetree.sty
 Package: beamerouterthemetree 2010/06/17  (rcs-revision d02a7cf4d8ae)
 )) (/usr/local/texlive/2011/texmf-dist/tex/generic/babel/babel.sty
-Package: babel 2008/07/06 v3.8l The Babel package
+Package: babel 2008/07/08 v3.8m The Babel package
 
 (/usr/local/texlive/2011/texmf-dist/tex/generic/babel/germanb.ldf
 Language: germanb 2008/06/01 v2.6m German support from the babel system
 
 (/usr/local/texlive/2011/texmf-dist/tex/generic/babel/babel.def
-File: babel.def 2008/07/06 v3.8l Babel common definitions
+File: babel.def 2008/07/08 v3.8m Babel common definitions
 LaTeX Info: Redefining \textlatin on input line 82.
 \babel@savecnt=\count153
 \U@D=\dimen182
@@ -1157,17 +1156,24 @@ LaTeX Font Warning: Font shape `T1/cmss/m/n' in size <4> not available
 
 [1{/usr/local/texlive/2011/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
- <./figures/UPB_Logo_RGB_09.pdf>]
-LaTeX Font Info:    Try loading font information for U+msa on input line 78.
+ <./figures/upb_logo.png>]
+LaTeX Font Info:    Try loading font information for U+msa on input line 79.
 
 (/usr/local/texlive/2011/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 78.
+LaTeX Font Info:    Try loading font information for U+msb on input line 79.
 
 (/usr/local/texlive/2011/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 ) [2
+
+] [3
+
+]
+[4
+
+] [5
 
 ]
 \tf@nav=\write6
@@ -1179,12 +1185,11 @@ File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 \tf@snm=\write8
 \openout8 = `slides.snm'.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 81.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 81.
-
-(./slides.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 81.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 81.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 104.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 104.
+ (./slides.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 104.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 104.
 Package rerunfilecheck Info: File `slides.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
 
@@ -1192,26 +1197,25 @@ Package rerunfilecheck Info: File `slides.out' has not changed.
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 1.0pt have occurred.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 81.
  ) 
 Here is how much of TeX's memory you used:
- 17444 strings out of 493633
- 315113 string characters out of 3143378
- 391502 words of memory out of 3000000
- 20317 multiletter control sequences out of 15000+200000
+ 17442 strings out of 493629
+ 314684 string characters out of 3143323
+ 393082 words of memory out of 3000000
+ 20313 multiletter control sequences out of 15000+200000
  14608 words of font info for 40 fonts, out of 3000000 for 9000
  831 hyphenation exceptions out of 8191
- 49i,15n,53p,395b,434s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 49i,15n,56p,395b,434s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/local/texlive/2011/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc}
 </usr/local/texlive/2011/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.
 pfb></usr/local/texlive/2011/texmf-dist/fonts/type1/public/cm-super/sfss0600.pf
 b></usr/local/texlive/2011/texmf-dist/fonts/type1/public/cm-super/sfss0800.pfb>
 </usr/local/texlive/2011/texmf-dist/fonts/type1/public/cm-super/sfss1095.pfb></
 usr/local/texlive/2011/texmf-dist/fonts/type1/public/cm-super/sfss1440.pfb>
-Output written on slides.pdf (2 pages, 55335 bytes).
+Output written on slides.pdf (5 pages, 96462 bytes).
 PDF statistics:
- 55 PDF objects out of 1000 (max. 8388607)
- 38 compressed objects within 1 object stream
- 5 named destinations out of 1000 (max. 500000)
+ 71 PDF objects out of 1000 (max. 8388607)
+ 52 compressed objects within 1 object stream
+ 11 named destinations out of 1000 (max. 500000)
  38 words of extra memory for PDF output out of 10000 (max. 10000000)
 
