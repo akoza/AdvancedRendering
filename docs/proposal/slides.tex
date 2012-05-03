@@ -17,12 +17,12 @@
 
 \setbeamertemplate{navigation symbols}{}
 
-\usepackage[german]{babel}
+\usepackage[english]{babel}
 
 %\usepackage[latin1]{inputenc}
 \usepackage[utf8]{inputenc}
 
-\usepackage{hyperref}
+%\usepackage{hyperref}
 
 % WTF? times? serious?
 %\usepackage{times}
@@ -30,8 +30,7 @@
 
 \usepackage{listings}
 
-\usepackage{tabularx}
-\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+%\usepackage{tabularx}
 
 \title[Project Proposal]{Advanced Rendering \\ Project Proposal}
 
@@ -69,7 +68,8 @@
   \titlepage
 \end{frame}
 
-\begin{frame}{Idea}
+\begin{frame}{Realistic Modelling}
+\begin{minipage}[hbt]{0.45\textwidth}
 	\begin{itemize}
 		\item Model inner courtyard of university in detail
 		\begin{itemize}
@@ -78,33 +78,47 @@
 			\item Vegetation
 		\end{itemize}
 	\end{itemize}	
-\end{frame}
-
-\begin{frame}{Texturing and Illumination Effects}
-	\begin{itemize}
-		\item Normal Mapping
-		\includegraphics[height=2cm]{figures/normal_map_stone.jpg}
-		\item Ambient Occlusion
-	\end{itemize}
+\end{minipage}
+\begin{minipage}[hbt]{0.45\textwidth}
+	\begin{figure}
+	\centering
+	\includegraphics[width=4.5cm]{figures/models.png}
+	\caption{Possible Model Arrangement}
+	\end{figure}
+\end{minipage}
 \end{frame}
 
 \begin{frame}{Image-Based Effects}
+\begin{minipage}[hbt]{0.45\textwidth}
 	\begin{itemize}
-		\item Skyboxes
-		\includegraphics[height=2cm]{figures/skybox.jpg}
-		\item Lens Flare
-		\includegraphics[height=2cm]{figures/lens_flare_tree.jpg}
-		\item Bloom
-		\includegraphics[height=2cm]{figures/bloom.jpg}
-	\end{itemize}
+		\item "Mandatory" Effects: Skybox \& Normal Mapping
+		\item Lens Flare, Blooming
+		\item Screen Space Ambient Occlusion
+	\end{itemize}	
+\end{minipage}
+\begin{minipage}[hbt]{0.45\textwidth}
+	\begin{figure}
+	\centering
+	\includegraphics[width=4.5cm]{figures/ssao.jpg}
+	\caption{SSAO}
+	\end{figure}
+\end{minipage}
 \end{frame}
 
-\begin{frame}{Non-Photorealistic Rendering}
+\begin{frame}{Change to Non-Photorealistic Rendering}
+\begin{minipage}[hbt]{0.45\textwidth}
 	\begin{itemize}
-		\item Toon-Shader gets activated at some point in time and
-		\item Every object is smoothly converted and looks like in a carton
-	\end{itemize}
-	\includegraphics[height=2cm]{figures/toon_shader.jpg}
+		\item Use a Cel-Shader as a contrast ...
+		\item ... but at this point we don't want to spoiler too much
+	\end{itemize}	
+\end{minipage}
+\begin{minipage}[hbt]{0.45\textwidth}
+	\begin{figure}
+	\centering
+	\includegraphics[width=4.5cm]{figures/toon_shader.jpg}
+	\caption{Cel-(or Toon-)Shader}
+	\end{figure}
+\end{minipage}
 \end{frame}
 
 
