@@ -23,9 +23,12 @@ import java.awt.Dimension;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.InputStream;
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.Random;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GLAutoDrawable;
@@ -37,6 +40,9 @@ import com.sun.opengl.cg.CGprogram;
 import com.sun.opengl.cg.CgGL;
 import com.sun.opengl.util.BufferUtil;
 import com.sun.opengl.util.GLUT;
+import com.sun.opengl.util.texture.Texture;
+import com.sun.opengl.util.texture.TextureData;
+import com.sun.opengl.util.texture.TextureIO;
 
 public class UniScene extends JoglTemplate {
 
@@ -50,7 +56,7 @@ public class UniScene extends JoglTemplate {
 	
 	private CGcontext cgContext;
 	private CGprogram cgSSAO = null;
-	private CGparameter cgProjMat, cgProjMatInv, cgPixelX, cgPixelY;	
+	private CGparameter cgProjMat, cgProjMatInv, cgPixelX, cgPixelY, cgBloomAlpha, cgThresh;	
 	private int cgVertexProfile, cgFragProfile;
 	
 	public static void main(String[] args) {
@@ -112,20 +118,13 @@ public class UniScene extends JoglTemplate {
 			System.exit(1);
 		}
 
-		CgGL.cgGLLoadProgram(cgSSAO);
-
-		int err = CgGL.cgGetError();
-		if (err != CgGL.CG_NO_ERROR)
-		{
-			System.out.println("Load shader [SSAO]: "
-					+ CgGL.cgGetErrorString(err));
-			System.exit(1);
-		}
+		CgGL.cgGLLoadProgram(cgSSAO);		
 		cgProjMat = CgGL.cgGetNamedParameter(cgSSAO, "projMat");
 		cgProjMatInv = CgGL.cgGetNamedParameter(cgSSAO, "projMatInv");
 		cgPixelX = CgGL.cgGetNamedParameter(cgSSAO, "pixelSizeX");
 		cgPixelY = CgGL.cgGetNamedParameter(cgSSAO, "pixelSizeY");
-		
+		cgBloomAlpha = CgGL.cgGetNamedParameter(cgSSAO, "alpha");			
+		cgThresh = CgGL.cgGetNamedParameter(cgSSAO, "threshold");
 	}
 	
     public void init(GLAutoDrawable drawable) {
@@ -145,42 +144,73 @@ public class UniScene extends JoglTemplate {
     	
     	loadCampus();
     	loadLights();
-    	//loadSky();
+    	loadSky();
+    	rand = new Random();
     }
 
     public void keyPressed(KeyEvent e) {    
     	super.keyPressed(e);
-    	if (e.getKeyCode() == KeyEvent.VK_1)
+    	if (e.getKeyCode() == KeyEvent.VK_1){
     		ssao = !ssao;
+    		System.out.println("Shader "+ssao);
+    	}
+    	if (e.getKeyCode() == KeyEvent.VK_UP && alpha < 20){
+    		++alpha;
+    		System.out.println("Bloom alpha "+alpha*0.05);
+    	}
+    	if (e.getKeyCode() == KeyEvent.VK_DOWN && alpha > 0){
+    		--alpha;
+    		System.out.println("Bloom alpha "+alpha*0.05);
+    	}
+    	if (e.getKeyCode() == KeyEvent.VK_RIGHT && celThreshold < 20){
+    		++celThreshold;
+    		System.out.println("CelShader Threshold "+celThreshold*0.05);
+    	}
+    	if (e.getKeyCode() == KeyEvent.VK_LEFT && celThreshold > 0){
+    		--celThreshold;
+    		System.out.println("CelShader Threshold "+celThreshold*0.05);
+    	}
+    		
     	// Insert Key Interactions
     	/** if (e.getKeyCode() == KeyEvent.VK_SPACE)
 	    	state = ++state % 2; */
     }
     
     boolean ssao = false;
+    int alpha = 0, celThreshold = 0;
+    Random rand;
     
     public void display(GLAutoDrawable drawable) {
     	    	
     	drawToFBO();
-    	    	
+    	
+    	Texture rand;    
+    	
 		if (ssao){
+			gl.glActiveTexture(GL.GL_TEXTURE2);
+			rand = genRandTex();
+			rand.bind();
+			gl.glActiveTexture(GL.GL_TEXTURE0);
 			CgGL.cgGLSetStateMatrixParameter(cgProjMat,
 				CgGL.CG_GL_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 			CgGL.cgGLSetStateMatrixParameter(cgProjMatInv,
 				CgGL.CG_GL_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_INVERSE);
 			CgGL.cgGLSetParameter1f(cgPixelX, 1/texWidth);
 			CgGL.cgGLSetParameter1f(cgPixelY, 1/texHeight);
+			CgGL.cgGLSetParameter1f(cgBloomAlpha, alpha);			
+			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);
 			CgGL.cgGLEnableProfile(cgFragProfile);
-			CgGL.cgGLBindProgram(cgSSAO);
-		}
-    	drawToScreen();
-    	if (ssao)
-    		CgGL.cgGLDisableProfile(cgFragProfile);    	
+			CgGL.cgGLBindProgram(cgSSAO);	
+    		drawToScreen();
+    		CgGL.cgGLDisableProfile(cgFragProfile);
+    		rand.dispose();
+    	}else
+    		drawToScreen();    	
+    	
 
     }
     
-    private int fboTexId;
-    private int fboRboId; 
+    private int fboTexId, depthTexId;   
     private int fboId;
     
     private void prepareFBO(){    	
@@ -188,21 +218,24 @@ public class UniScene extends JoglTemplate {
     	gl.glGenTextures(1, tmp, 0);
     	fboTexId = tmp[0];
     	gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);
-    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_LINEAR);
-    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_LINEAR_MIPMAP_LINEAR);
-    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP_TO_EDGE);
-    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP_TO_EDGE);
-    	gl.glTexParameteri(GL.GL_TEXTURE_2D, GL.GL_GENERATE_MIPMAP, GL.GL_TRUE); // automatic mipmap
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP);  
     	gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, texWidth, texHeight, 0,
-    			GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, null);
+    			GL.GL_RGBA, GL.GL_FLOAT, null);
     	gl.glBindTexture(GL.GL_TEXTURE_2D, 0);   
     	
-    	tmp = new int[1];
-    	gl.glGenRenderbuffersEXT(1, tmp, 0);
-    	fboRboId = tmp[0];
-    	gl.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, fboRboId);
-    	gl.glRenderbufferStorageEXT(GL.GL_RENDERBUFFER_EXT, GL.GL_DEPTH_COMPONENT, texWidth, texHeight);
-    	gl.glBindRenderbufferEXT(GL.GL_RENDERBUFFER_EXT, 0);
+    	gl.glGenTextures(1, tmp, 0);
+    	depthTexId = tmp[0];
+    	gl.glBindTexture(GL.GL_TEXTURE_2D, depthTexId);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP);    
+    	gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_DEPTH_COMPONENT24, texWidth, texHeight, 0,
+    			GL.GL_DEPTH_COMPONENT, GL.GL_FLOAT, null);
+    	gl.glBindTexture(GL.GL_TEXTURE_2D, 0);     
     	
     	tmp = new int[1];
     	gl.glGenFramebuffersEXT(1, tmp, 0);
@@ -211,17 +244,21 @@ public class UniScene extends JoglTemplate {
     	
     	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, fboTexId, 0);
     	
-    	gl.glFramebufferRenderbufferEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT, GL.GL_RENDERBUFFER_EXT, fboRboId);
+    	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT, GL.GL_TEXTURE_2D, depthTexId, 0);
+    	    	
     	
-    	if (gl.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT) != GL.GL_FRAMEBUFFER_COMPLETE_EXT)
+    	if (gl.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT) != GL.GL_FRAMEBUFFER_COMPLETE_EXT){
     		System.err.println ("Something went wrong");
+    		System.exit(1);
+    	}
     	
     	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
     }   
     
     private void drawToFBO(){        	    
     	    	
-    	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fboId);    	
+    	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fboId);       	
+    	    	
 		gl.glClearColor(0,1,1,0);
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		gl.glPushMatrix();		
@@ -233,8 +270,8 @@ public class UniScene extends JoglTemplate {
 		scene.drawSorted(false, new float[] {-modelview[12], -modelview[13], -modelview[14]});		
         
         gl.glPopMatrix();              
-        
-        gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
+                
+        gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);       
     }
     
     private void drawToScreen(){
@@ -248,16 +285,15 @@ public class UniScene extends JoglTemplate {
 		gl.glLoadIdentity();
 				
 		gl.glOrtho(0, texWidth, 0, texHeight, -1, 1);
-		if (ssao){
-			gl.glActiveTexture(GL.GL_TEXTURE0);		
-			gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);
+		gl.glActiveTexture(GL.GL_TEXTURE0);		
+		gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);
+		if (ssao){			
 			gl.glActiveTexture(GL.GL_TEXTURE1);		
-			gl.glBindTexture(GL.GL_TEXTURE_2D, fboRboId);
-		} else{			
+			gl.glBindTexture(GL.GL_TEXTURE_2D, depthTexId);
 			gl.glActiveTexture(GL.GL_TEXTURE0);
-			gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);
-			gl.glEnable(GL.GL_TEXTURE_2D);
 		}
+		else
+			gl.glEnable(GL.GL_TEXTURE_2D);
 		
 		gl.glBegin(GL.GL_QUADS);
 		gl.glTexCoord2f(0,0);
@@ -279,8 +315,7 @@ public class UniScene extends JoglTemplate {
     }
     
     private void loadCampus(){
-    	//scene.addChild(new ObjectSceneNode(gl, "src/models/Campus"));    	
-    	scene.addChild(new ObjTexNode(gl,"src/bunny", "src/textures/rasen.png", ""));
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/Campus"));    	
     }
     
     private void loadLights(){
@@ -303,30 +338,14 @@ public class UniScene extends JoglTemplate {
     }
     
     private void loadSky(){
-    	InnerSceneNode skybox = new InnerSceneNode(gl);
-    	TexturedSquareNode sky = new TexturedSquareNode(gl, "src/textures/stop37.jpg");
-    	sky.translate(120, 50, 150);
-    	sky.scale (-460, 1, -520);
-    	sky.rotate(90, 0, 0);
-    	skybox.addChild(sky);    	
-    	sky = new TexturedSquareNode(gl, "src/textures/sback37.jpg");
-    	sky.translate(-340, -50, -370);
-    	sky.scale(460, 100, 1);
-     	skybox.addChild(sky);    	
-    	sky = new TexturedSquareNode(gl, "src/textures/sleft37.jpg");
-    	sky.translate(-340, -50, 150);
-    	sky.scale(1, 100, 520);
-    	sky.rotate(0, 90, 0);
-     	skybox.addChild(sky);
-     	sky = new TexturedSquareNode(gl, "src/textures/sright37.jpg");
-    	sky.translate(120, -50, 150);
-    	sky.scale(1, 100, 520);
-    	sky.rotate(0, 90, 0);
-     	skybox.addChild(sky);
-    	sky = new TexturedSquareNode(gl, "src/textures/sfront37.jpg");
-    	sky.translate(-340, -50, 150);
-    	sky.scale(460, 100, 1);    	
-    	skybox.addChild(sky);
-    	scene.addChild(skybox);
+    	scene.addChild(new SkyboxNode(gl, new String[]{"src/textures/sright37.jpg", "src/textures/sleft37.jpg", "src/textures/stop37.jpg", "src/textures/stop37.jpg", "src/textures/sfront37.jpg", "src/textures/sback37.jpg"}));
+    }
+    
+    private Texture genRandTex(){
+    	BufferedImage image = new BufferedImage(texWidth, texHeight, BufferedImage.TYPE_INT_RGB);
+    	for (int i = 0; i < texWidth; ++i)
+    		for (int j = 0; j < texHeight; ++j)
+    			image.setRGB(i, j, rand.nextInt(255));
+    	return TextureIO.newTexture(image, true);
     }
 }
