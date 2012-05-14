@@ -1,0 +1,29 @@
+struct vertexIN
+{  
+  float2 texcoord	: TEXCOORD0;  
+};
+
+float4 main(vertexIN vIN, 			
+			uniform float alpha,
+			uniform sampler2D tex : TEXUNIT0):COLOR {	
+					
+	float x = vIN.texcoord.x;
+	float y = vIN.texcoord.y;	
+			
+	float4 sum = {0,0,0,0};
+	float4 bloomOut;
+	for (int i = -4; i < 4; ++i)
+		for (int j = -3; j < 3; ++j)
+			sum += tex2D(tex, float2(x,y)+float2(j,i)*0.004)*0.25;
+			
+	if (tex2D(tex, float2(x,y)).r < 0.3)
+		bloomOut = sum*sum*0.012 + tex2D(tex, float2(x,y));
+	else{
+		if (tex2D(tex, float2(x,y)).r < 0.5)
+			bloomOut = sum*sum*0.009 + tex2D(tex, float2(x,y));
+		else
+			bloomOut = sum*sum*0.0075 + tex2D(tex, float2(x,y));
+	}
+	
+	return alpha*bloomOut + (1-alpha)*tex2D(tex, float2(x,y));	
+}
