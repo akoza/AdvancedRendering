@@ -106,7 +106,6 @@ abstract public class SceneNode {
 		gl.glRotatef(rot[0], 1, 0, 0);
 		gl.glRotatef(rot[1], 0, 1, 0);
 		gl.glRotatef(rot[2], 0, 0, 1);	
-		gl.glColor4f(color[0], color[1], color[2], color[3]);
 		drawMe();		
 		if (drawBounds)
 			drawBounds();
@@ -246,7 +245,6 @@ abstract public class SceneNode {
 			gl.glRotatef(rot[0], 1, 0, 0);
 			gl.glRotatef(rot[1], 0, 1, 0);
 			gl.glRotatef(rot[2], 0, 0, 1);	
-			gl.glColor4f(color[0], color[1], color[2], color[3]);
 			
 			if (drawBounds)
 				drawBounds();

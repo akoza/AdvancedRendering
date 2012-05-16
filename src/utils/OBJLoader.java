@@ -1018,6 +1018,8 @@ public class OBJLoader {
 					        GL.GL_NEAREST);
 					texture.setTexParameteri(GL.GL_TEXTURE_MIN_FILTER,
 					        GL.GL_NEAREST);
+		    		texture.setTexParameteri( GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT );
+		    		texture.setTexParameteri( GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT );
 				} catch (Exception e) {
 					System.err.println("Error loading texture " + texFnm);
 				}
