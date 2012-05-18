@@ -1,0 +1,23 @@
+float3  expand(float3 v)
+{
+  return (v - 0.5) * 2; // Expand a range-compressed vector
+}
+
+void main(float2 normalMapTexCoord : TEXCOORD0,
+                    float3 lightDir: TEXCOORD1,
+ 
+             	    out float3 color : COLOR,
+					
+  		            uniform sampler2D texture : TEXUNIT0,
+  		            uniform sampler2D normalMap: TEXUNIT1)
+{
+  // Normalizes light vector
+  float3 light = normalize(lightDir);
+ 
+  // Sample and expand the normal map texture
+  float3 normalTex = tex2D(normalMap, normalMapTexCoord);
+ 
+  float3 normal = expand(normalTex);
+
+  color =  tex2D(texture, normalMapTexCoord) + dot(normal, light);
+}
