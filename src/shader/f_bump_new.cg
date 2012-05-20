@@ -21,19 +21,19 @@ void main (	float2 texCoord: TEXCOORD0,
 
 	float3 vVec = normalize(eyeVec);
 	
-	float4 base = texture2D(colorMap, texCoord);
+	float4 base = tex2D(colorMap, texCoord);
 	
-	float3 bump = normalize( texture2D(normalMap, texCoord).xyz * 2.0 - 1.0);
+	float3 bump = normalize( tex2D(normalMap, texCoord).xyz * 2.0 - 1.0);
 
-	float4 vAmbient = Ia * Ka;
+	float3 vAmbient = Ia * Ka;
 
 	float diffuse = max( dot(lVec, bump), 0.0 );
 	
-	float4 vDiffuse = Id * Kd * diffuse;	
+	float3 vDiffuse = Id * Kd * diffuse;	
 
 	float specular = pow(clamp(dot(reflect(-lVec, bump), vVec), 0.0, 1.0), shininess );
 	
-	float4 vSpecular = Is * Ks * specular;	
+	float3 vSpecular = Is * Ks * specular;	
 	
 	color = ( vAmbient*base + vDiffuse*base + vSpecular) * att;
 }
