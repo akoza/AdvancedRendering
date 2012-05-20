@@ -1,0 +1,47 @@
+void main(	float4 position : POSITION,
+			float3 normal	: NORMAL,
+			float2 texCoord : TEXCOORD0, 
+
+			out float2 oTexCoord : TEXCOORD0,
+			out float3 lightVec : TEXCOORD1, 
+			out float3 eyeVec : TEXCOORD2, 
+			
+			uniform float3 lightPosition, 
+ 			uniform float4x4 modelView
+)
+
+{
+	oTexCoord = texCoord;
+
+	float3 tangent; 
+	float3 binormal; 
+	
+	float3 c1 = cross(normal, float3(0.0, 0.0, 1.0)); 
+	float3 c2 = cross(normal, float3(0.0, 1.0, 0.0)); 
+	
+	if(length(c1)>length(c2))
+	{
+		tangent = c1;	
+	}
+	else
+	{
+		tangent = c2;	
+	}
+	
+	tangent = normalize(tangent);
+	
+	binormal = cross(normal, tangent); 
+	binormal = normalize(binormal);
+	
+	float3 vVertex = float3(mul(modelView, position));
+	float3 tmpVec = lightPosition.xyz - vVertex;
+
+	lightVec.x = dot(tmpVec, tangent);
+	lightVec.y = dot(tmpVec, binormal);
+	lightVec.z = dot(tmpVec, normal);
+
+	tmpVec = -vVertex;
+	eyeVec.x = dot(tmpVec, tangent);
+	eyeVec.y = dot(tmpVec, binormal);
+	eyeVec.z = dot(tmpVec, normal);
+}

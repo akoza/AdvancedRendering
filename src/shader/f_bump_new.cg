@@ -1,0 +1,39 @@
+void main (	float2 texCoord: TEXCOORD0,
+			float3 lightVec: TEXCOORD1,
+			float3 eyeVec: TEXCOORD2,
+
+			uniform sampler2D colorMap: TEXUNIT0,
+			uniform sampler2D normalMap: TEXUNIT1,
+			uniform float invRadius,
+			uniform float3 Ia,
+            uniform float3 Id,
+            uniform float3 Is,
+            uniform float3 Ka,
+            uniform float3 Kd,
+            uniform float3 Ks,
+            uniform float  shininess,
+            
+            out float3 color : COLOR)
+{
+	float distSqr = dot(lightVec, lightVec);
+	float att = clamp(1.0 - invRadius * sqrt(distSqr), 0.0, 1.0);
+	float3 lVec = lightVec * inversesqrt(distSqr);
+
+	float3 vVec = normalize(eyeVec);
+	
+	float4 base = texture2D(colorMap, texCoord);
+	
+	float3 bump = normalize( texture2D(normalMap, texCoord).xyz * 2.0 - 1.0);
+
+	float4 vAmbient = Ia * Ka;
+
+	float diffuse = max( dot(lVec, bump), 0.0 );
+	
+	float4 vDiffuse = Id * Kd * diffuse;	
+
+	float specular = pow(clamp(dot(reflect(-lVec, bump), vVec), 0.0, 1.0), shininess );
+	
+	float4 vSpecular = Is * Ks * specular;	
+	
+	color = ( vAmbient*base + vDiffuse*base + vSpecular) * att;
+}
