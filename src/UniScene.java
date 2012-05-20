@@ -19,15 +19,8 @@
  *          Sascha Brauer - 6495401
  */
 
-import java.awt.Dimension;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.io.InputStream;
-import java.nio.Buffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 import java.util.Random;
 
 import javax.media.opengl.GL;
@@ -38,10 +31,8 @@ import com.sun.opengl.cg.CGcontext;
 import com.sun.opengl.cg.CGparameter;
 import com.sun.opengl.cg.CGprogram;
 import com.sun.opengl.cg.CgGL;
-import com.sun.opengl.util.BufferUtil;
 import com.sun.opengl.util.GLUT;
 import com.sun.opengl.util.texture.Texture;
-import com.sun.opengl.util.texture.TextureData;
 import com.sun.opengl.util.texture.TextureIO;
 
 public class UniScene extends JoglTemplate {
@@ -55,8 +46,8 @@ public class UniScene extends JoglTemplate {
 	private int texWidth = 1440, texHeight = 900;
 	
 	private CGcontext cgContext;
-	private CGprogram cgSSAO = null, cgBloom = null, cgBumpV = null, cgBumpF = null;
-	private CGparameter cgProjMat, cgProjMatInv, cgPixelX, cgPixelY, cgBloomAlpha, cgThresh;	
+	private CGprogram cgSSAO = null, cgVP = null, cgFP = null, cgBumpV = null, cgBumpF = null;
+	private CGparameter cgModelProj, cgProjMatInv, cgPixelX, cgPixelY, cgBloomAlpha, cgThresh;
 	private CGparameter cgModelViewProj, cgLightPosition;
 	private int cgVertexProfile, cgFragProfile;
 	
@@ -86,6 +77,24 @@ public class UniScene extends JoglTemplate {
 		gl.glLoadIdentity();
 	}
 	
+	CGprogram load(String path, int profile){
+		CGprogram ret;
+		ret = CgGL.cgCreateProgramFromFile(cgContext,
+				CgGL.CG_SOURCE, path, profile, null, null);
+		if (ret == null)
+		{
+			int err = CgGL.cgGetError();
+			System.err.println("Compile shader ["+path+"] "
+					+ CgGL.cgGetErrorString(err));
+			if (CgGL.cgGetLastListing(cgContext) != null)
+			{
+				System.err.println(CgGL.cgGetLastListing(cgContext) + "\n");
+			}
+			System.exit(1);
+		}
+		return ret;
+	}
+	
 	public void loadShaders(){		
 		cgContext = CgGL.cgCreateContext();
 		cgVertexProfile = CgGL.cgGLGetLatestProfile(CgGL.CG_GL_VERTEX);
@@ -103,76 +112,21 @@ public class UniScene extends JoglTemplate {
 			System.exit(1);
 		}
 		CgGL.cgGLSetOptimalOptions(cgFragProfile);
-		
-		// Load SSAO
-		cgSSAO = CgGL.cgCreateProgramFromFile(cgContext,
-				CgGL.CG_SOURCE, "src/shader/ssao.cg", cgFragProfile, null, null);
-		if (cgSSAO == null)
-		{
-			int err = CgGL.cgGetError();
-			System.err.println("Compile shader [SSAO] "
-					+ CgGL.cgGetErrorString(err));
-			if (CgGL.cgGetLastListing(cgContext) != null)
-			{
-				System.err.println(CgGL.cgGetLastListing(cgContext) + "\n");
-			}
-			System.exit(1);
-		}
-		
-		// Load Bloom
-		cgBloom = CgGL.cgCreateProgramFromFile(cgContext,
-				CgGL.CG_SOURCE, "src/shader/bloom.cg", cgFragProfile, null, null);
-		if (cgBloom == null)
-		{
-			int err = CgGL.cgGetError();
-			System.err.println("Compile shader [Bloom] "
-					+ CgGL.cgGetErrorString(err));
-			if (CgGL.cgGetLastListing(cgContext) != null)
-			{
-				System.err.println(CgGL.cgGetLastListing(cgContext) + "\n");
-			}
-			System.exit(1);
-		}
-		
-		// Load Bump
-		cgBumpF = CgGL.cgCreateProgramFromFile(cgContext,
-				CgGL.CG_SOURCE, "src/shader/f_bump.cg", cgFragProfile, "main", null);
-		if (cgBumpF == null)
-		{
-			int err = CgGL.cgGetError();
-			System.err.println("Compile shader [Bump Fragment] "
-					+ CgGL.cgGetErrorString(err));
-			if (CgGL.cgGetLastListing(cgContext) != null)
-			{
-				System.err.println(CgGL.cgGetLastListing(cgContext) + "\n");
-			}
-			System.exit(1);
-		}
-		cgBumpV = CgGL.cgCreateProgramFromFile(cgContext,
-				CgGL.CG_SOURCE, "src/shader/v_bump.cg", cgVertexProfile, "main", null);
-		if (cgBumpV == null)
-		{
-			int err = CgGL.cgGetError();
-			System.err.println("Compile shader [Bump Vertex] "
-					+ CgGL.cgGetErrorString(err));
-			if (CgGL.cgGetLastListing(cgContext) != null)
-			{
-				System.err.println(CgGL.cgGetLastListing(cgContext) + "\n");
-			}
-			System.exit(1);
-		}
-
+		 
+		cgSSAO = load("src/shader/ssao.cg", cgFragProfile);
 		CgGL.cgGLLoadProgram(cgSSAO);
-		CgGL.cgGLLoadProgram(cgBloom);
+		cgVP = load("src/shader/vp.cg", cgVertexProfile);
+		CgGL.cgGLLoadProgram(cgVP);	
+		cgFP = load("src/shader/fp.cg", cgFragProfile);	
+		CgGL.cgGLLoadProgram(cgFP);
+		cgBumpV = load("src/shader/v_bump.cg", cgVertexProfile);
 		CgGL.cgGLLoadProgram(cgBumpV);
+		cgBumpF = load("src/shader/f_bump.cg", cgFragProfile);
 		CgGL.cgGLLoadProgram(cgBumpF);
-		cgProjMat = CgGL.cgGetNamedParameter(cgSSAO, "projMat");
-		cgProjMatInv = CgGL.cgGetNamedParameter(cgSSAO, "projMatInv");
-		cgPixelX = CgGL.cgGetNamedParameter(cgSSAO, "pixelSizeX");
-		cgPixelY = CgGL.cgGetNamedParameter(cgSSAO, "pixelSizeY");
-		cgBloomAlpha = CgGL.cgGetNamedParameter(cgBloom, "alpha");			
+		;
+		cgBloomAlpha = CgGL.cgGetNamedParameter(cgSSAO, "alpha");			
 		cgThresh = CgGL.cgGetNamedParameter(cgSSAO, "threshold");
-		
+		cgModelProj = CgGL.cgGetNamedParameter(cgVP, "modelViewProj");
 		cgLightPosition = CgGL.cgGetNamedParameter(cgBumpV, "lightPosition");
 		cgModelViewProj = CgGL.cgGetNamedParameter(cgBumpV, "modelViewProj");
 	}
@@ -196,28 +150,25 @@ public class UniScene extends JoglTemplate {
     	loadLights();
     	loadSky();
     	rand = new Random();
+    	randTex = genRandTex();
     }
 
     public void keyPressed(KeyEvent e) {    
-    	//super.keyPressed(e);
+    	super.keyPressed(e);
     	if (e.getKeyCode() == KeyEvent.VK_1){
     		ssao = !ssao;
-    		System.out.println("SSAO Shader "+ssao);
-    	}
-    	if (e.getKeyCode() == KeyEvent.VK_2){
-    		bloom = !bloom;
-    		System.out.println("Bloom Shader "+bloom);
+    		System.out.println("Shader "+ssao);
     	}
     	if (e.getKeyCode() == KeyEvent.VK_3){
     		bump = !bump;
     		System.out.println("Normal Mapping Shader "+bump);
     	}
     	if (e.getKeyCode() == KeyEvent.VK_UP && alpha < 20){
-    		alpha+=0.05;
+    		++alpha;
     		System.out.println("Bloom alpha "+alpha*0.05);
     	}
     	if (e.getKeyCode() == KeyEvent.VK_DOWN && alpha > 0){
-    		alpha-=0.05;
+    		--alpha;
     		System.out.println("Bloom alpha "+alpha*0.05);
     	}
     	if (e.getKeyCode() == KeyEvent.VK_RIGHT && celThreshold < 20){
@@ -234,61 +185,53 @@ public class UniScene extends JoglTemplate {
 	    	state = ++state % 2; */
     }
     
-    boolean ssao = false, bloom = false, bump = false;
-    float alpha = 0, celThreshold = 0;
+    boolean ssao = false, bump = false;
+    int alpha = 0, celThreshold = 0;
     Random rand;
     
     public void display(GLAutoDrawable drawable) {
+    	
+    	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fboId);
+    	if (bump) {
+			CgGL.cgGLSetParameter3fv(cgLightPosition, new float[]{0,0,0,0}, 0);			
+			CgGL.cgGLEnableProfile(cgVertexProfile);
+			CgGL.cgGLBindProgram(cgBumpV);
+			CgGL.cgGLEnableProfile(cgFragProfile);
+			CgGL.cgGLBindProgram(cgBumpF);	
+    	}
     	drawToFBO();
-    	
-    	Texture rand;    
-    	
-		if (ssao){
-			gl.glActiveTexture(GL.GL_TEXTURE2);
-			rand = genRandTex();
-			rand.bind();
-			gl.glActiveTexture(GL.GL_TEXTURE0);
-			CgGL.cgGLSetStateMatrixParameter(cgProjMat,
-				CgGL.CG_GL_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
-			CgGL.cgGLSetStateMatrixParameter(cgProjMatInv,
-				CgGL.CG_GL_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_INVERSE);
-			CgGL.cgGLSetParameter1f(cgPixelX, 1/texWidth);
-			CgGL.cgGLSetParameter1f(cgPixelY, 1/texHeight);
+    	if (bump){
+    		CgGL.cgGLDisableProfile(cgFragProfile);
+    		CgGL.cgGLDisableProfile(cgVertexProfile);
+    	}    	
+    	CgGL.cgGLEnableProfile(cgVertexProfile);
+    	CgGL.cgGLBindProgram(cgVP);
+    	CgGL.cgGLEnableProfile(cgFragProfile);
+    	CgGL.cgGLBindProgram(cgFP);
+    	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, fboTexNormals, 0);
+    	drawToFBO();  
+    	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, fboTexId, 0);
+    	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
+    	CgGL.cgGLDisableProfile(cgVertexProfile);
+	    CgGL.cgGLDisableProfile(cgFragProfile);    	
+	
+		if (ssao){		
 			CgGL.cgGLSetParameter1f(cgBloomAlpha, alpha);			
 			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);
 			CgGL.cgGLEnableProfile(cgFragProfile);
 			CgGL.cgGLBindProgram(cgSSAO);	
-    		drawToScreen();
-    		CgGL.cgGLDisableProfile(cgFragProfile);
-    		rand.dispose();
+    		drawToScreen();    		
+    		CgGL.cgGLDisableProfile(cgFragProfile);    		
+    	}else{
+    		
+    		drawToScreen();    	
     	}
-		else if (bloom) {
-			CgGL.cgGLSetParameter1f(cgBloomAlpha, alpha);
-			CgGL.cgGLEnableProfile(cgFragProfile);
-			CgGL.cgGLBindProgram(cgBloom);	
-    		drawToScreen();
-    		CgGL.cgGLDisableProfile(cgFragProfile);
-		}
-		else if (bump) {
-			CgGL.cgGLSetParameter3fv(cgLightPosition, new float[]{0,0,0,0}, 0);
-			CgGL.cgGLSetStateMatrixParameter(cgModelViewProj,
-					CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
-			CgGL.cgGLEnableProfile(cgVertexProfile);
-			CgGL.cgGLBindProgram(cgBumpV);
-			CgGL.cgGLEnableProfile(cgFragProfile);
-			CgGL.cgGLBindProgram(cgBumpF);			
-    		drawToScreen();
-    		CgGL.cgGLDisableProfile(cgFragProfile);
-    		CgGL.cgGLDisableProfile(cgVertexProfile);
-		}
-		
-		else {
-			drawToScreen();
-		}	    	
+
     }
     
     private int fboTexId, depthTexId;   
     private int fboId;
+    private int fboTexNormals;
     
     private void prepareFBO(){    	
     	int[] tmp = new int[1];
@@ -300,7 +243,7 @@ public class UniScene extends JoglTemplate {
     	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP);
     	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP);  
     	gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, texWidth, texHeight, 0,
-    			GL.GL_RGBA, GL.GL_FLOAT, null);
+    			GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, null);
     	gl.glBindTexture(GL.GL_TEXTURE_2D, 0);   
     	
     	gl.glGenTextures(1, tmp, 0);
@@ -321,43 +264,54 @@ public class UniScene extends JoglTemplate {
     	
     	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, fboTexId, 0);
     	
-    	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT, GL.GL_TEXTURE_2D, depthTexId, 0);
+    	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_DEPTH_ATTACHMENT_EXT, GL.GL_TEXTURE_2D, depthTexId, 0);       
+    	
+    	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
     	    	
+    	//FBO for normals
+    	tmp = new int[1];
+    	gl.glGenTextures(1, tmp, 0);
+    	fboTexNormals = tmp[0];
+    	gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexNormals);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP);
+    	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP);  
+    	gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, texWidth, texHeight, 0,
+    			GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, null);
+    	gl.glBindTexture(GL.GL_TEXTURE_2D, 0);  
     	
     	if (gl.glCheckFramebufferStatusEXT(GL.GL_FRAMEBUFFER_EXT) != GL.GL_FRAMEBUFFER_COMPLETE_EXT){
     		System.err.println ("Something went wrong");
     		System.exit(1);
-    	}
+    	}    	    
     	
     	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
     }   
     
     private void drawToFBO(){        	    
-    	    	
-    	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fboId);       	
-    	    	
+    	        	       
 		gl.glClearColor(0,1,1,0);
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		gl.glPushMatrix();		
 		applyMouseTranslation(gl);
-		applyMouseRotation(gl);		
+		applyMouseRotation(gl);			    
+				
+		CgGL.cgGLSetStateMatrixParameter(cgModelViewProj,
+				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		
 		float[] modelview = new float[16];
 		gl.glGetFloatv(GL.GL_MODELVIEW_MATRIX, modelview, 0);
 		scene.drawSorted(false, new float[] {-modelview[12], -modelview[13], -modelview[14]});		
         
-        gl.glPopMatrix();              
-                
-        gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);       
+        gl.glPopMatrix();                            
     }
     
+    private Texture randTex = null;
+    
     private void drawToScreen(){
-    	gl.glPushMatrix();	
-    	gl.glTexParameteri( GL.GL_TEXTURE_2D,
-				GL.GL_TEXTURE_WRAP_S, GL.GL_REPEAT );
-		gl.glTexParameteri( GL.GL_TEXTURE_2D,
-				GL.GL_TEXTURE_WRAP_T, GL.GL_REPEAT );
-    	
+    	gl.glPushMatrix();	    	
+
     	gl.glColor3f(1,1,1);
 		gl.glClearColor(0,0,0,0);
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);		
@@ -367,10 +321,14 @@ public class UniScene extends JoglTemplate {
 				
 		gl.glOrtho(0, texWidth, 0, texHeight, -1, 1);
 		gl.glActiveTexture(GL.GL_TEXTURE0);		
-		gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);
+		gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);		
 		if (ssao){			
 			gl.glActiveTexture(GL.GL_TEXTURE1);		
 			gl.glBindTexture(GL.GL_TEXTURE_2D, depthTexId);
+			gl.glActiveTexture(GL.GL_TEXTURE2);
+			gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexNormals);
+			gl.glActiveTexture(GL.GL_TEXTURE3);			
+			randTex.bind();
 			gl.glActiveTexture(GL.GL_TEXTURE0);
 		}
 		else
@@ -389,14 +347,21 @@ public class UniScene extends JoglTemplate {
 		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);		
 		
 		if (!ssao)
-			gl.glDisable(GL.GL_TEXTURE_2D);
+			gl.glDisable(GL.GL_TEXTURE_2D);		
 		gl.glPopMatrix();
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glPopMatrix();
     }
     
     private void loadCampus(){
-    	scene.addChild(new ObjectSceneNode(gl, "rasenbox"));    	//src/models/Campus
+    	//scene.addChild(new ObjectSceneNode(gl, "src/models/Campus"));    	
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/ground"));    	
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/a"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/b"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/c"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/d"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/g"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/brunnen"));    	
     }
     
     private void loadLights(){
@@ -426,7 +391,7 @@ public class UniScene extends JoglTemplate {
     	BufferedImage image = new BufferedImage(texWidth, texHeight, BufferedImage.TYPE_INT_RGB);
     	for (int i = 0; i < texWidth; ++i)
     		for (int j = 0; j < texHeight; ++j)
-    			image.setRGB(i, j, rand.nextInt(255));
+    			image.setRGB(i, j, rand.nextInt(0xffffff));
     	return TextureIO.newTexture(image, true);
     }
 }
