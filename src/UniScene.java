@@ -345,6 +345,8 @@ public class UniScene extends JoglTemplate {
 				CgGL.CG_GL_MODELVIEW_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		CgGL.cgGLSetStateMatrixParameter(cgModelViewProj,
 				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
+		CgGL.cgGLSetStateMatrixParameter(cgModelProj,
+				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		
 		float[] modelview = new float[16];
 		gl.glGetFloatv(GL.GL_MODELVIEW_MATRIX, modelview, 0);
@@ -401,13 +403,13 @@ public class UniScene extends JoglTemplate {
     
     private void loadCampus(){
     	//scene.addChild(new ObjectSceneNode(gl, "src/models/Campus"));    	
-//    	scene.addChild(new ObjectSceneNode(gl, "src/models/ground"));    	
-//    	scene.addChild(new ObjectSceneNode(gl, "src/models/a"));  
-//    	scene.addChild(new ObjectSceneNode(gl, "src/models/b"));  
-//    	scene.addChild(new ObjectSceneNode(gl, "src/models/c"));  
-//    	scene.addChild(new ObjectSceneNode(gl, "src/models/d"));  
-//    	scene.addChild(new ObjectSceneNode(gl, "src/models/g"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/rasenbox"));    
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/ground"));    	
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/a"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/b"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/c"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/d"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/g"));  
+//    	scene.addChild(new ObjectSceneNode(gl, "src/models/rasenbox"));    
 //    	scene.addChild(new ObjectSceneNode(gl, "src/models/ground"));    
 //      scene.addChild(new ObjectSceneNode(gl, "src/models/steine")); 
 //      scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_basic"));  
