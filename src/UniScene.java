@@ -52,11 +52,12 @@ public class UniScene extends JoglTemplate {
 	private Camera cam;
 	private int[][] camPoints = {{}}; // TODO
 	private int path = 0;
-	
+
 	private CGcontext cgContext;
-	private CGprogram cgSSAO = null, cgVP = null, cgFP = null, cgBumpV = null, cgBumpF = null;	
+	private CGprogram cgSSAO = null, cgVP = null, cgFP = null, cgBumpV = null, cgBumpF = null;
 	private CGparameter cgModelProj, cgBloomAlpha, cgThresh;
 	private CGparameter cgModelView, cgModelViewProj, cgLightPosition;
+	private CGparameter cgIa, cgId, cgIs, cgKs, cgKd, cgKa, cgShininess;
 	private int cgVertexProfile, cgFragProfile;
 	
 	public static void main(String[] args) {
@@ -92,7 +93,7 @@ public class UniScene extends JoglTemplate {
 		if (ret == null)
 		{
 			int err = CgGL.cgGetError();
-			System.err.println("Copathmpile shader ["+path+"] "
+			System.err.println("Compile shader ["+path+"] "
 					+ CgGL.cgGetErrorString(err));
 			if (CgGL.cgGetLastListing(cgContext) != null)
 			{
@@ -131,13 +132,20 @@ public class UniScene extends JoglTemplate {
 		CgGL.cgGLLoadProgram(cgBumpV);
 		cgBumpF = load("src/shader/f_bump_new.cg", cgFragProfile);
 		CgGL.cgGLLoadProgram(cgBumpF);
-	
+		
 		cgBloomAlpha = CgGL.cgGetNamedParameter(cgSSAO, "alpha");			
 		cgThresh = CgGL.cgGetNamedParameter(cgSSAO, "threshold");
 		cgModelProj = CgGL.cgGetNamedParameter(cgVP, "modelViewProj");
 		cgLightPosition = CgGL.cgGetNamedParameter(cgBumpV, "lightPosition");
 		cgModelViewProj = CgGL.cgGetNamedParameter(cgBumpV, "modelViewProj");
 		cgModelView = CgGL.cgGetNamedParameter(cgBumpV, "modelView");
+		cgIa = CgGL.cgGetNamedParameter(cgBumpF, "Ia");
+		cgId = CgGL.cgGetNamedParameter(cgBumpF, "Id");
+		cgIs = CgGL.cgGetNamedParameter(cgBumpF, "Is");
+		cgKa = CgGL.cgGetNamedParameter(cgBumpF, "Ka");
+		cgKd = CgGL.cgGetNamedParameter(cgBumpF, "Kd");
+		cgKs = CgGL.cgGetNamedParameter(cgBumpF, "Ks");
+		cgShininess = CgGL.cgGetNamedParameter(cgBumpF, "shininess");
 	}
 	
     public void init(GLAutoDrawable drawable) {
@@ -154,7 +162,7 @@ public class UniScene extends JoglTemplate {
     	scene = new InnerSceneNode (gl);
     	
     	cam = new Camera();
-    	
+
     	loadShaders();
     	
     	loadCampus();
@@ -166,7 +174,7 @@ public class UniScene extends JoglTemplate {
 
     public void keyPressed(KeyEvent e) {    
     	//super.keyPressed(e);
-    	
+
     	if (e.getKeyCode() == KeyEvent.VK_C){
     		path = 1;
     		cam.pos[0] = camPoints[0][0];
@@ -181,7 +189,7 @@ public class UniScene extends JoglTemplate {
 		if(e.getKeyCode() == KeyEvent.VK_S) cam.moveBackward(1);
 		if(e.getKeyCode() == KeyEvent.VK_SPACE) cam.moveUp(1);
 		if(e.getKeyCode() == KeyEvent.VK_SHIFT) cam.moveDown(1);
-    	
+
     	if (e.getKeyCode() == KeyEvent.VK_1){
     		ssao = !ssao;
     		System.out.println("Shader "+ssao);
@@ -229,7 +237,7 @@ public class UniScene extends JoglTemplate {
     	if (bump){
     		CgGL.cgGLDisableProfile(cgFragProfile);
     		CgGL.cgGLDisableProfile(cgVertexProfile);
-    	}        	
+    	}    	
     	CgGL.cgGLEnableProfile(cgVertexProfile);
     	CgGL.cgGLBindProgram(cgVP);
     	CgGL.cgGLEnableProfile(cgFragProfile);
@@ -239,14 +247,14 @@ public class UniScene extends JoglTemplate {
     	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, fboTexId, 0);
     	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
     	CgGL.cgGLDisableProfile(cgVertexProfile);
-	    CgGL.cgGLDisableProfile(cgFragProfile);	
+	    CgGL.cgGLDisableProfile(cgFragProfile);    	
 	
 		if (ssao){		
 			CgGL.cgGLSetParameter1f(cgBloomAlpha, alpha);			
-			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);			
+			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);
 			CgGL.cgGLEnableProfile(cgFragProfile);
 			CgGL.cgGLBindProgram(cgSSAO);	
-    		drawToScreen();    		    		
+    		drawToScreen();    		
     		CgGL.cgGLDisableProfile(cgFragProfile);    		
     	}else{
     		
@@ -331,13 +339,11 @@ public class UniScene extends JoglTemplate {
 			if (path == camPoints.length)
 				path = 0;
 		}
-		glu.gluLookAt(cam.pos[0], cam.pos[1], cam.pos[2], cam.at[0], cam.at[1], cam.at[2], cam.up[0], cam.up[1], cam.up[2]);
+		glu.gluLookAt(cam.pos[0], cam.pos[1], cam.pos[2], cam.at[0], cam.at[1], cam.at[2], cam.up[0], cam.up[1], cam.up[2]);			    
 				
 		CgGL.cgGLSetStateMatrixParameter(cgModelView, 
 				CgGL.CG_GL_MODELVIEW_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		CgGL.cgGLSetStateMatrixParameter(cgModelViewProj,
-				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
-		CgGL.cgGLSetStateMatrixParameter(cgModelProj,
 				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		
 		float[] modelview = new float[16];
@@ -395,23 +401,35 @@ public class UniScene extends JoglTemplate {
     
     private void loadCampus(){
     	//scene.addChild(new ObjectSceneNode(gl, "src/models/Campus"));    	
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/ground"));    	
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/a"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/b"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/c"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/d"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/g"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/brunnen"));    	
+//    	scene.addChild(new ObjectSceneNode(gl, "src/models/ground"));    	
+//    	scene.addChild(new ObjectSceneNode(gl, "src/models/a"));  
+//    	scene.addChild(new ObjectSceneNode(gl, "src/models/b"));  
+//    	scene.addChild(new ObjectSceneNode(gl, "src/models/c"));  
+//    	scene.addChild(new ObjectSceneNode(gl, "src/models/d"));  
+//    	scene.addChild(new ObjectSceneNode(gl, "src/models/g"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/rasenbox"));    
+//    	scene.addChild(new ObjectSceneNode(gl, "src/models/ground"));    
+//      scene.addChild(new ObjectSceneNode(gl, "src/models/steine")); 
+//      scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_basic"));  
+//      scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_h"));
     }
     
     private void loadLights(){
     	gl.glEnable(GL.GL_LIGHTING);
 		gl.glEnable(GL.GL_LIGHT0);
+		float[] light = { 0.3f, 0.3f, 0.3f, 1, 1,1,1,1,1,1,1,1 };
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, new float[]{119,40f,147,0f}, 0);
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[]{0.3f, 0.3f, 0.3f, 1}, 0);
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, new float[]{1,1,1,1}, 0);
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[]{1,1,1,1}, 0);
 		CgGL.cgGLSetParameter3fv(cgLightPosition, new float[]{119,40f,147,0f}, 0);
+		CgGL.cgGLSetParameter3fv(cgIa,light, 0);
+		CgGL.cgGLSetParameter3fv(cgId, light, 4);
+		CgGL.cgGLSetParameter3fv(cgIs, light, 8);
+		CgGL.cgSetParameter3fv(cgKa, light, 0);
+		CgGL.cgSetParameter3fv(cgKd, light, 4);
+		CgGL.cgSetParameter3fv(cgKs, light, 8);
+		CgGL.cgSetParameter1f(cgShininess, 100.0f);
 		/*gl.glEnable(GL.GL_LIGHT1);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, new float[]{-119f,40f,147f,1f}, 0);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_AMBIENT, new float[]{0.3f, 0.3f, 0.3f, 1}, 0);
@@ -435,7 +453,7 @@ public class UniScene extends JoglTemplate {
     			image.setRGB(i, j, rand.nextInt(0xffffff));
     	return TextureIO.newTexture(image, true);
     }
-    
+
 	public void mousePressed(MouseEvent e)
 	{
 		prevMouseX = e.getX();
@@ -510,4 +528,5 @@ public class UniScene extends JoglTemplate {
 				(cam.pos[1]-camPoints[path][1])*(cam.pos[1]-camPoints[path][1])+
 				(cam.pos[2]-camPoints[path][2])*(cam.pos[2]-camPoints[path][2]))< 100;
 	}
+
 }
