@@ -47,8 +47,8 @@ public class UniScene extends JoglTemplate {
 	
 	private CGcontext cgContext;
 	private CGprogram cgSSAO = null, cgVP = null, cgFP = null, cgBumpV = null, cgBumpF = null;
-	private CGparameter cgModelProj, cgProjMatInv, cgPixelX, cgPixelY, cgBloomAlpha, cgThresh;
-	private CGparameter cgModelViewProj, cgLightPosition;
+	private CGparameter cgModelProj, cgBloomAlpha, cgThresh;
+	private CGparameter cgModelView, cgModelViewProj, cgLightPosition;
 	private int cgVertexProfile, cgFragProfile;
 	
 	public static void main(String[] args) {
@@ -119,9 +119,9 @@ public class UniScene extends JoglTemplate {
 		CgGL.cgGLLoadProgram(cgVP);	
 		cgFP = load("src/shader/fp.cg", cgFragProfile);	
 		CgGL.cgGLLoadProgram(cgFP);
-		cgBumpV = load("src/shader/v_bump.cg", cgVertexProfile);
+		cgBumpV = load("src/shader/v_bump_new.cg", cgVertexProfile);
 		CgGL.cgGLLoadProgram(cgBumpV);
-		cgBumpF = load("src/shader/f_bump.cg", cgFragProfile);
+		cgBumpF = load("src/shader/f_bump_new.cg", cgFragProfile);
 		CgGL.cgGLLoadProgram(cgBumpF);
 		;
 		cgBloomAlpha = CgGL.cgGetNamedParameter(cgSSAO, "alpha");			
@@ -129,6 +129,7 @@ public class UniScene extends JoglTemplate {
 		cgModelProj = CgGL.cgGetNamedParameter(cgVP, "modelViewProj");
 		cgLightPosition = CgGL.cgGetNamedParameter(cgBumpV, "lightPosition");
 		cgModelViewProj = CgGL.cgGetNamedParameter(cgBumpV, "modelViewProj");
+		cgModelView = CgGL.cgGetNamedParameter(cgBumpV, "modelView");
 	}
 	
     public void init(GLAutoDrawable drawable) {
@@ -192,8 +193,7 @@ public class UniScene extends JoglTemplate {
     public void display(GLAutoDrawable drawable) {
     	
     	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fboId);
-    	if (bump) {
-			CgGL.cgGLSetParameter3fv(cgLightPosition, new float[]{0,0,0,0}, 0);			
+    	if (bump) {					
 			CgGL.cgGLEnableProfile(cgVertexProfile);
 			CgGL.cgGLBindProgram(cgBumpV);
 			CgGL.cgGLEnableProfile(cgFragProfile);
@@ -297,6 +297,8 @@ public class UniScene extends JoglTemplate {
 		applyMouseTranslation(gl);
 		applyMouseRotation(gl);			    
 				
+		CgGL.cgGLSetStateMatrixParameter(cgModelView, 
+				CgGL.CG_GL_MODELVIEW_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		CgGL.cgGLSetStateMatrixParameter(cgModelViewProj,
 				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		
@@ -371,7 +373,8 @@ public class UniScene extends JoglTemplate {
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[]{0.3f, 0.3f, 0.3f, 1}, 0);
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, new float[]{1,1,1,1}, 0);
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[]{1,1,1,1}, 0);
-		gl.glEnable(GL.GL_LIGHT1);
+		CgGL.cgGLSetParameter3fv(cgLightPosition, new float[]{119,40f,147,0f}, 0);
+		/*gl.glEnable(GL.GL_LIGHT1);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, new float[]{-119f,40f,147f,1f}, 0);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_AMBIENT, new float[]{0.3f, 0.3f, 0.3f, 1}, 0);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_DIFFUSE, new float[]{1,1,1,1}, 0);
@@ -380,7 +383,7 @@ public class UniScene extends JoglTemplate {
 		gl.glLightfv(GL.GL_LIGHT2, GL.GL_POSITION, new float[]{119f,40f,-147f,1f}, 0);
 		gl.glLightfv(GL.GL_LIGHT2, GL.GL_AMBIENT, new float[]{0.3f, 0.3f, 0.3f, 1}, 0);
 		gl.glLightfv(GL.GL_LIGHT2, GL.GL_DIFFUSE, new float[]{1,1,1,1}, 0);
-		gl.glLightfv(GL.GL_LIGHT2, GL.GL_SPECULAR, new float[]{1,1,1,1}, 0);
+		gl.glLightfv(GL.GL_LIGHT2, GL.GL_SPECULAR, new float[]{1,1,1,1}, 0);*/
     }
     
     private void loadSky(){
