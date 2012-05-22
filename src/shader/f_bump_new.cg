@@ -4,7 +4,6 @@ void main (	float2 texCoord: TEXCOORD0,
 
 			uniform sampler2D colorMap: TEXUNIT0,
 			uniform sampler2D normalMap: TEXUNIT1,
-			uniform float invRadius,
 			uniform float3 Ia,
             uniform float3 Id,
             uniform float3 Is,
@@ -16,7 +15,7 @@ void main (	float2 texCoord: TEXCOORD0,
             out float3 color : COLOR)
 {
 	float distSqr = dot(lightVec, lightVec);
-	float att = clamp(1.0 - invRadius * sqrt(distSqr), 0.0, 1.0);
+	float att = clamp(sqrt(distSqr), 0.0, 1.0); //clamp(1.0 - invRadius * sqrt(distSqr), 0.0, 1.0);
 	float3 lVec = lightVec * inversesqrt(distSqr);
 
 	float3 vVec = normalize(eyeVec);
@@ -25,15 +24,15 @@ void main (	float2 texCoord: TEXCOORD0,
 	
 	float3 bump = normalize( tex2D(normalMap, texCoord).xyz * 2.0 - 1.0);
 
-	float3 vAmbient = Ia * Ka;
+	float3 vAmbient = Ia; //* Ka;
 
 	float diffuse = max( dot(lVec, bump), 0.0 );
 	
-	float3 vDiffuse = Id * Kd * diffuse;	
+	float3 vDiffuse = Id * diffuse;//Kd * diffuse;	
 
 	float specular = pow(clamp(dot(reflect(-lVec, bump), vVec), 0.0, 1.0), shininess );
 	
-	float3 vSpecular = Is * Ks * specular;	
+	float3 vSpecular = Is;// * specular;//Ks * specular;	
 	
-	color = ( vAmbient*base + vDiffuse*base + vSpecular) * att;
+	color = ( vAmbient*base + vDiffuse*base) * att; // + vSpecular
 }
