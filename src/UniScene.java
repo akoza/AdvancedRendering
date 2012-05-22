@@ -19,7 +19,11 @@
  *          Sascha Brauer - 6495401
  */
 
+import java.awt.Dimension;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.util.Random;
 
@@ -45,8 +49,12 @@ public class UniScene extends JoglTemplate {
 	private GLUT glut;	
 	private int texWidth = 1440, texHeight = 900;
 	
+	private Camera cam;
+	private int[][] camPoints = {{}}; // TODO
+	private int path = 0;
+	
 	private CGcontext cgContext;
-	private CGprogram cgSSAO = null, cgVP = null, cgFP = null, cgBumpV = null, cgBumpF = null;
+	private CGprogram cgSSAO = null, cgVP = null, cgFP = null, cgBumpV = null, cgBumpF = null;	
 	private CGparameter cgModelProj, cgBloomAlpha, cgThresh;
 	private CGparameter cgModelView, cgModelViewProj, cgLightPosition;
 	private int cgVertexProfile, cgFragProfile;
@@ -84,7 +92,7 @@ public class UniScene extends JoglTemplate {
 		if (ret == null)
 		{
 			int err = CgGL.cgGetError();
-			System.err.println("Compile shader ["+path+"] "
+			System.err.println("Copathmpile shader ["+path+"] "
 					+ CgGL.cgGetErrorString(err));
 			if (CgGL.cgGetLastListing(cgContext) != null)
 			{
@@ -123,7 +131,7 @@ public class UniScene extends JoglTemplate {
 		CgGL.cgGLLoadProgram(cgBumpV);
 		cgBumpF = load("src/shader/f_bump_new.cg", cgFragProfile);
 		CgGL.cgGLLoadProgram(cgBumpF);
-		;
+	
 		cgBloomAlpha = CgGL.cgGetNamedParameter(cgSSAO, "alpha");			
 		cgThresh = CgGL.cgGetNamedParameter(cgSSAO, "threshold");
 		cgModelProj = CgGL.cgGetNamedParameter(cgVP, "modelViewProj");
@@ -145,6 +153,8 @@ public class UniScene extends JoglTemplate {
     	gl.glEnable(GL.GL_DOUBLEBUFFER);
     	scene = new InnerSceneNode (gl);
     	
+    	cam = new Camera();
+    	
     	loadShaders();
     	
     	loadCampus();
@@ -155,7 +165,23 @@ public class UniScene extends JoglTemplate {
     }
 
     public void keyPressed(KeyEvent e) {    
-    	super.keyPressed(e);
+    	//super.keyPressed(e);
+    	
+    	if (e.getKeyCode() == KeyEvent.VK_C){
+    		path = 1;
+    		cam.pos[0] = camPoints[0][0];
+    		cam.pos[1] = camPoints[0][1];
+    		cam.pos[2] = camPoints[0][2];
+    		cam.lookAt(camPoints[1][0], camPoints[1][1], camPoints[1][2]);
+    	}
+    	
+		if(e.getKeyCode() == KeyEvent.VK_D) cam.moveRight(1);
+		if(e.getKeyCode() == KeyEvent.VK_A) cam.moveLeft(1);
+		if(e.getKeyCode() == KeyEvent.VK_W) cam.moveForward(1);
+		if(e.getKeyCode() == KeyEvent.VK_S) cam.moveBackward(1);
+		if(e.getKeyCode() == KeyEvent.VK_SPACE) cam.moveUp(1);
+		if(e.getKeyCode() == KeyEvent.VK_SHIFT) cam.moveDown(1);
+    	
     	if (e.getKeyCode() == KeyEvent.VK_1){
     		ssao = !ssao;
     		System.out.println("Shader "+ssao);
@@ -203,7 +229,7 @@ public class UniScene extends JoglTemplate {
     	if (bump){
     		CgGL.cgGLDisableProfile(cgFragProfile);
     		CgGL.cgGLDisableProfile(cgVertexProfile);
-    	}    	
+    	}        	
     	CgGL.cgGLEnableProfile(cgVertexProfile);
     	CgGL.cgGLBindProgram(cgVP);
     	CgGL.cgGLEnableProfile(cgFragProfile);
@@ -213,14 +239,14 @@ public class UniScene extends JoglTemplate {
     	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, fboTexId, 0);
     	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
     	CgGL.cgGLDisableProfile(cgVertexProfile);
-	    CgGL.cgGLDisableProfile(cgFragProfile);    	
+	    CgGL.cgGLDisableProfile(cgFragProfile);	
 	
 		if (ssao){		
 			CgGL.cgGLSetParameter1f(cgBloomAlpha, alpha);			
-			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);
+			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);			
 			CgGL.cgGLEnableProfile(cgFragProfile);
 			CgGL.cgGLBindProgram(cgSSAO);	
-    		drawToScreen();    		
+    		drawToScreen();    		    		
     		CgGL.cgGLDisableProfile(cgFragProfile);    		
     	}else{
     		
@@ -294,12 +320,24 @@ public class UniScene extends JoglTemplate {
 		gl.glClearColor(0,1,1,0);
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		gl.glPushMatrix();		
-		applyMouseTranslation(gl);
-		applyMouseRotation(gl);			    
+		/*applyMouseTranslation(gl);
+		applyMouseRotation(gl);*/
+		if (path > 0){
+			cam.moveToDesiredPosition(camPoints[path][0], camPoints[path][1], camPoints[path][2], 0.01f, 0.01f);
+			if (nearEnough()){
+				path++;
+				cam.lookAt(camPoints[path][0], camPoints[path][1], camPoints[path][2]);
+			}
+			if (path == camPoints.length)
+				path = 0;
+		}
+		glu.gluLookAt(cam.pos[0], cam.pos[1], cam.pos[2], cam.at[0], cam.at[1], cam.at[2], cam.up[0], cam.up[1], cam.up[2]);
 				
 		CgGL.cgGLSetStateMatrixParameter(cgModelView, 
 				CgGL.CG_GL_MODELVIEW_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		CgGL.cgGLSetStateMatrixParameter(cgModelViewProj,
+				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
+		CgGL.cgGLSetStateMatrixParameter(cgModelProj,
 				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		
 		float[] modelview = new float[16];
@@ -397,4 +435,79 @@ public class UniScene extends JoglTemplate {
     			image.setRGB(i, j, rand.nextInt(0xffffff));
     	return TextureIO.newTexture(image, true);
     }
+    
+	public void mousePressed(MouseEvent e)
+	{
+		prevMouseX = e.getX();
+		prevMouseY = e.getY();
+	}
+	
+	public void mouseDragged(MouseEvent e)
+	{
+		// get current mouse x and y coordinate
+		int x = e.getX();
+		int y = e.getY();
+		// get size of component
+		Dimension size = e.getComponent().getSize();
+
+		// left button is dragged (rotation)
+		if ((e.getModifiers() & InputEvent.BUTTON1_MASK) != 0)
+		{
+			// store thetaY movement for rotation around x-axis
+			float thetaY = 360f * ((float) (x - prevMouseX) / (float) size.width);
+			// store thetaX movement for rotation around y-axis
+			float thetaX = 360f * ((float) (prevMouseY - y) / (float) size.height);
+			// store current x and y coordinate for future calculations
+			prevMouseX = x;
+			prevMouseY = y;
+			
+			Matrix4x4 rot = new Matrix4x4();
+			rot.rotateX(-(cam.pos[2] - cam.at[2]) / cam.getLength() * (thetaX) * Math.PI / 180);
+			rot.rotateY((thetaY) * Math.PI / 180);
+			rot.rotateZ((cam.pos[0] - cam.at[0]) / cam.getLength() * (thetaX) * Math.PI / 180);
+			Vector4 vec = new Vector4(cam.pos[0] - cam.at[0], cam.pos[1] - cam.at[1], cam.pos[2] - cam.at[2], 0);
+			vec = rot.multiply(vec);
+			cam.pos[0] = cam.at[0] + (float)vec.getElement(0);
+			cam.pos[1] = cam.at[1] + (float)vec.getElement(1);
+			cam.pos[2] = cam.at[2] + (float)vec.getElement(2);
+		}
+		// right button is dragged (translation)
+		if ((e.getModifiers() & InputEvent.BUTTON3_MASK) != 0)
+		{
+			// thetaX movement forprivate CGprogram bla = null; x translation
+			float thetaX = 0.63f * ((float) (x - prevMouseX)); // store
+			// thetaY movement for y translation
+			float thetaY = 0.63f * ((float) (prevMouseY - y)); // store
+			// store current x and y coordinate for future calculations
+			prevMouseX = x;
+			prevMouseY = y;
+			// change x and y rotation value
+			
+			float lengthX, lengthX2, lengthZ, lengthZ2;
+			lengthX = (cam.at[0] - cam.pos[0]) * thetaX * 0.00166f;
+			lengthX2 = (cam.at[0] - cam.pos[0]) * thetaY * 0.00166f;
+			lengthZ = (cam.at[2] - cam.pos[2]) * thetaX * 0.00166f;
+			lengthZ2 = (cam.at[2] - cam.pos[2]) * thetaY * 0.00166f;
+			
+			cam.pos[0] += lengthZ;
+			cam.at[0] += lengthZ;
+			cam.pos[2] -= lengthX;
+			cam.at[2] -= lengthX;
+			cam.pos[0] -= lengthX2;
+			cam.at[0] -= lengthX2;
+			cam.pos[2] -= lengthZ2;
+			cam.at[2] -= lengthZ2;
+		}
+	}
+
+	public void mouseWheelMoved(MouseWheelEvent e)
+	{
+		cam.zoomIn(e.getWheelRotation() * 2.8f);
+	}
+	
+	public boolean nearEnough(){		
+		return ((cam.pos[0]-camPoints[path][0])*(cam.pos[0]-camPoints[path][0])+
+				(cam.pos[1]-camPoints[path][1])*(cam.pos[1]-camPoints[path][1])+
+				(cam.pos[2]-camPoints[path][2])*(cam.pos[2]-camPoints[path][2]))< 100;
+	}
 }
