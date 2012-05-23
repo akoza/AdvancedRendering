@@ -25,6 +25,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+import java.util.Calendar;
 import java.util.Random;
 
 import javax.media.opengl.GL;
@@ -43,21 +44,24 @@ public class UniScene extends JoglTemplate {
 
 	private static final long serialVersionUID = 1L;
 		
-	private InnerSceneNode scene;	
+	private InnerSceneNode scene, sceneBump;	
 	private GL gl;
 	private GLU glu;
 	private GLUT glut;	
 	private int texWidth = 1440, texHeight = 900;
 	
+	//Uhr:
+	private SceneNode uhr_sek;
+	private SceneNode uhr_min;
+	private SceneNode uhr_h;
+	
 	private Camera cam;
-	private int[][] camPoints = {{}}; // TODO
-	private int path = 0;
 
 	private CGcontext cgContext;
-	private CGprogram cgSSAO = null, cgVP = null, cgFP = null, cgBumpV = null, cgBumpF = null;
+	private CGprogram cgSSAO = null, cgVP = null, cgFP = null, cgBumpV = null, cgBumpF = null, cgPhongV = null, cgPhongF = null;
 	private CGparameter cgModelProj, cgBloomAlpha, cgThresh;
 	private CGparameter cgModelView, cgModelViewProj, cgLightPosition;
-	private CGparameter cgIa, cgId, cgIs, cgKs, cgKd, cgKa, cgShininess;
+	private CGparameter cgIa, cgId, cgBump;	
 	private int cgVertexProfile, cgFragProfile;
 	
 	public static void main(String[] args) {
@@ -134,18 +138,14 @@ public class UniScene extends JoglTemplate {
 		CgGL.cgGLLoadProgram(cgBumpF);
 		
 		cgBloomAlpha = CgGL.cgGetNamedParameter(cgSSAO, "alpha");			
-		cgThresh = CgGL.cgGetNamedParameter(cgSSAO, "threshold");
+		cgThresh = CgGL.cgGetNamedParameter(cgBumpF, "threshold");
 		cgModelProj = CgGL.cgGetNamedParameter(cgVP, "modelViewProj");
 		cgLightPosition = CgGL.cgGetNamedParameter(cgBumpV, "lightPosition");
-		cgModelViewProj = CgGL.cgGetNamedParameter(cgBumpV, "modelViewProj");
+		cgModelViewProj = CgGL.cgGetNamedParameter(cgBumpV, "modelViewProj");		
 		cgModelView = CgGL.cgGetNamedParameter(cgBumpV, "modelView");
 		cgIa = CgGL.cgGetNamedParameter(cgBumpF, "Ia");
 		cgId = CgGL.cgGetNamedParameter(cgBumpF, "Id");
-		cgIs = CgGL.cgGetNamedParameter(cgBumpF, "Is");
-		cgKa = CgGL.cgGetNamedParameter(cgBumpF, "Ka");
-		cgKd = CgGL.cgGetNamedParameter(cgBumpF, "Kd");
-		cgKs = CgGL.cgGetNamedParameter(cgBumpF, "Ks");
-		cgShininess = CgGL.cgGetNamedParameter(cgBumpF, "shininess");
+		cgBump = CgGL.cgGetNamedParameter(cgBumpF, "bumpP");
 	}
 	
     public void init(GLAutoDrawable drawable) {
@@ -155,11 +155,14 @@ public class UniScene extends JoglTemplate {
     	glut = this.getGlut();
     	prepareFBO();
     	gl.glEnable(GL.GL_DEPTH_TEST);
-//    	gl.glEnable(GL.GL_COLOR_MATERIAL);  
+    	gl.glEnable(GL.GL_COLOR_MATERIAL);  
     	gl.glHint(GL.GL_LINE_SMOOTH_HINT, GL.GL_NICEST);
     	gl.glEnable(GL.GL_LINE_SMOOTH);
+    	gl.glHint(GL.GL_POLYGON_SMOOTH_HINT, GL.GL_NICEST);
+    	gl.glEnable(GL.GL_POLYGON_SMOOTH);
     	gl.glEnable(GL.GL_DOUBLEBUFFER);
     	scene = new InnerSceneNode (gl);
+    	sceneBump = new InnerSceneNode (gl);
     	
     	cam = new Camera();
 
@@ -171,17 +174,9 @@ public class UniScene extends JoglTemplate {
     	rand = new Random();
     	randTex = genRandTex();
     }
-
+    
     public void keyPressed(KeyEvent e) {    
     	//super.keyPressed(e);
-
-    	if (e.getKeyCode() == KeyEvent.VK_C){
-    		path = 1;
-    		cam.pos[0] = camPoints[0][0];
-    		cam.pos[1] = camPoints[0][1];
-    		cam.pos[2] = camPoints[0][2];
-    		cam.lookAt(camPoints[1][0], camPoints[1][1], camPoints[1][2]);
-    	}
     	
 		if(e.getKeyCode() == KeyEvent.VK_D) cam.moveRight(1);
 		if(e.getKeyCode() == KeyEvent.VK_A) cam.moveLeft(1);
@@ -194,7 +189,7 @@ public class UniScene extends JoglTemplate {
     		ssao = !ssao;
     		System.out.println("Shader "+ssao);
     	}
-    	if (e.getKeyCode() == KeyEvent.VK_3){
+    	if (e.getKeyCode() == KeyEvent.VK_2){
     		bump = !bump;
     		System.out.println("Normal Mapping Shader "+bump);
     	}
@@ -226,24 +221,18 @@ public class UniScene extends JoglTemplate {
     
     public void display(GLAutoDrawable drawable) {
     	
-    	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fboId);
-    	if (bump) {					
-			CgGL.cgGLEnableProfile(cgVertexProfile);
-			CgGL.cgGLBindProgram(cgBumpV);
-			CgGL.cgGLEnableProfile(cgFragProfile);
-			CgGL.cgGLBindProgram(cgBumpF);	
-    	}
-    	drawToFBO();
-    	if (bump){
-    		CgGL.cgGLDisableProfile(cgFragProfile);
-    		CgGL.cgGLDisableProfile(cgVertexProfile);
-    	}    	
+    	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fboId);    	
+		CgGL.cgGLEnableProfile(cgVertexProfile);
+		CgGL.cgGLBindProgram(cgBumpV);
+		CgGL.cgGLEnableProfile(cgFragProfile);
+		CgGL.cgGLBindProgram(cgBumpF);	    	
+    	drawToFBO(bump);    		    	
     	CgGL.cgGLEnableProfile(cgVertexProfile);
     	CgGL.cgGLBindProgram(cgVP);
     	CgGL.cgGLEnableProfile(cgFragProfile);
     	CgGL.cgGLBindProgram(cgFP);
-    	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, fboTexNormals, 0);
-    	drawToFBO();  
+    	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, fboTexNormals, 0);    	
+    	drawToFBO(false);
     	gl.glFramebufferTexture2DEXT(GL.GL_FRAMEBUFFER_EXT, GL.GL_COLOR_ATTACHMENT0_EXT, GL.GL_TEXTURE_2D, fboTexId, 0);
     	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
     	CgGL.cgGLDisableProfile(cgVertexProfile);
@@ -276,8 +265,8 @@ public class UniScene extends JoglTemplate {
     	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
     	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_S, GL.GL_CLAMP);
     	gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_WRAP_T, GL.GL_CLAMP);  
-    	gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA8, texWidth, texHeight, 0,
-    			GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, null);
+    	gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA16, texWidth, texHeight, 0,
+    			GL.GL_RGBA, GL.GL_FLOAT, null);
     	gl.glBindTexture(GL.GL_TEXTURE_2D, 0);   
     	
     	gl.glGenTextures(1, tmp, 0);
@@ -323,35 +312,37 @@ public class UniScene extends JoglTemplate {
     	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
     }   
     
-    private void drawToFBO(){        	    
+    private void drawToFBO(boolean bump){        	    
     	        	       
+    	update_uhr();
+    	
 		gl.glClearColor(0,1,1,0);
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		gl.glPushMatrix();		
 		/*applyMouseTranslation(gl);
-		applyMouseRotation(gl);*/
-		if (path > 0){
-			cam.moveToDesiredPosition(camPoints[path][0], camPoints[path][1], camPoints[path][2], 0.01f, 0.01f);
-			if (nearEnough()){
-				path++;
-				cam.lookAt(camPoints[path][0], camPoints[path][1], camPoints[path][2]);
-			}
-			if (path == camPoints.length)
-				path = 0;
-		}
+		applyMouseRotation(gl);*/		
 		glu.gluLookAt(cam.pos[0], cam.pos[1], cam.pos[2], cam.at[0], cam.at[1], cam.at[2], cam.up[0], cam.up[1], cam.up[2]);			    
 				
 		CgGL.cgGLSetStateMatrixParameter(cgModelView, 
 				CgGL.CG_GL_MODELVIEW_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		CgGL.cgGLSetStateMatrixParameter(cgModelViewProj,
-				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
+				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);		
 		CgGL.cgGLSetStateMatrixParameter(cgModelProj,
-				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
+				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);		
+		Texture randTex = genRandTex();
+		gl.glActiveTexture(GL.GL_TEXTURE2);
+		randTex.bind();
+		gl.glActiveTexture(GL.GL_TEXTURE0);
+		CgGL.cgGLSetParameter1f(cgBump, bump?1:0);
+		sceneBump.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]});
+		CgGL.cgGLSetParameter1f(cgBump, 0);
+		scene.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]});
+		randTex.dispose();
+
 		
-		float[] modelview = new float[16];
-		gl.glGetFloatv(GL.GL_MODELVIEW_MATRIX, modelview, 0);
-		scene.drawSorted(false, new float[] {-modelview[12], -modelview[13], -modelview[14]});		
-        
+    	CgGL.cgGLDisableProfile(cgFragProfile);
+    	CgGL.cgGLDisableProfile(cgVertexProfile);
+		
         gl.glPopMatrix();                            
     }
     
@@ -402,18 +393,24 @@ public class UniScene extends JoglTemplate {
     }
     
     private void loadCampus(){
-    	//scene.addChild(new ObjectSceneNode(gl, "src/models/Campus"));    	
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/ground"));    	
+    	sceneBump.addChild(new ObjectSceneNode(gl, "src/models/ground"));    	//src/models/Campus
     	scene.addChild(new ObjectSceneNode(gl, "src/models/a"));  
     	scene.addChild(new ObjectSceneNode(gl, "src/models/b"));  
     	scene.addChild(new ObjectSceneNode(gl, "src/models/c"));  
     	scene.addChild(new ObjectSceneNode(gl, "src/models/d"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/g"));  
-//    	scene.addChild(new ObjectSceneNode(gl, "src/models/rasenbox"));    
-//    	scene.addChild(new ObjectSceneNode(gl, "src/models/ground"));    
-//      scene.addChild(new ObjectSceneNode(gl, "src/models/steine")); 
-//      scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_basic"));  
-//      scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_h"));
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/g"));   
+    	//scene.addChild(new ObjectSceneNode(gl, "src/models/steine")); 
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_basic"));  
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_h"));  
+    	uhr_h = scene.children.getLast();
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_min")); 
+    	uhr_min = scene.children.getLast();
+    	scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_sek"));
+    	uhr_sek = scene.children.getLast();
+    	//scene.addChild(new ObjectSceneNode(gl, "src/models/me"));  
+    	//scene.addChild(new ObjectSceneNode(gl, "src/models/brunnen")); 
+    	//scene.addChild(new ObjectSceneNode(gl, "src/models/buesche1")); 
+    	//scene.addChild(new ObjectSceneNode(gl, "src/models/baum1")); 
     }
     
     private void loadLights(){
@@ -426,12 +423,7 @@ public class UniScene extends JoglTemplate {
 		gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[]{1,1,1,1}, 0);
 		CgGL.cgGLSetParameter3fv(cgLightPosition, new float[]{119,40f,147,0f}, 0);
 		CgGL.cgGLSetParameter3fv(cgIa,light, 0);
-		CgGL.cgGLSetParameter3fv(cgId, light, 4);
-		CgGL.cgGLSetParameter3fv(cgIs, light, 8);
-		CgGL.cgSetParameter3fv(cgKa, light, 0);
-		CgGL.cgSetParameter3fv(cgKd, light, 4);
-		CgGL.cgSetParameter3fv(cgKs, light, 8);
-		CgGL.cgSetParameter1f(cgShininess, 100.0f);
+		CgGL.cgGLSetParameter3fv(cgId, light, 4);	
 		/*gl.glEnable(GL.GL_LIGHT1);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, new float[]{-119f,40f,147f,1f}, 0);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_AMBIENT, new float[]{0.3f, 0.3f, 0.3f, 1}, 0);
@@ -525,10 +517,17 @@ public class UniScene extends JoglTemplate {
 		cam.zoomIn(e.getWheelRotation() * 2.8f);
 	}
 	
-	public boolean nearEnough(){		
-		return ((cam.pos[0]-camPoints[path][0])*(cam.pos[0]-camPoints[path][0])+
-				(cam.pos[1]-camPoints[path][1])*(cam.pos[1]-camPoints[path][1])+
-				(cam.pos[2]-camPoints[path][2])*(cam.pos[2]-camPoints[path][2]))< 100;
-	}
+	private void update_uhr(){
+		   	java.util.Calendar today = new java.util.GregorianCalendar();
+		   	int std = today.get(Calendar.HOUR_OF_DAY);
+		   	int min = today.get(Calendar.MINUTE);
+		   	int sek = today.get(Calendar.SECOND);		   	
+		   	uhr_sek.translate(-55.5f, 3.4f, -46f);
+		   	uhr_sek.rotate(sek*6,0,0);
+		   	uhr_min.translate(-55.5f, 3.4f, -47.6f);
+		   	uhr_min.rotate(min*6,0,0);
+		   	uhr_h.translate(-55.5f, 3.4f, -49.2f);
+		   	uhr_h.rotate(std*30,0,0);
+	   }
 
 }

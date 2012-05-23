@@ -1,20 +1,26 @@
 void main(	float4 position : POSITION,
-			float3 normal	: NORMAL,
-			float2 texCoord : TEXCOORD0, 
+			float3 normal	: NORMAL,		
+			float3 tex: TEXCOORD0,			
 
 			out float4 cameraSpacePos : POSITION,
-			out float2 oTexCoord : TEXCOORD0,
+			out float3 oNormal: TEXCOORD3,			
 			out float3 lightVec : TEXCOORD1, 
+			out float3 oTex : TEXCOORD0,
 			out float3 eyeVec : TEXCOORD2, 
-			
+			out float3 objectSpacePos : TEXCOORD4,	
+			out float3 oLightPos : TEXCOORD5,			
+							
 			uniform float3 lightPosition, 
  			uniform float4x4 modelView,
  			uniform float4x4 modelViewProj
 )
 
-{
-	oTexCoord = texCoord;
+{	
+	oLightPos = lightPosition;
+	oNormal = normal;	
+	oTex = tex;	
 
+	objectSpacePos = position.xyz;
 	cameraSpacePos = mul(modelViewProj, position);
 
 	float3 tangent; 
@@ -35,7 +41,7 @@ void main(	float4 position : POSITION,
 	tangent = normalize(tangent);
 	
 	binormal = cross(normal, tangent); 
-	binormal = normalize(binormal);
+	binormal = normalize(binormal);	
 	
 	float3 vVertex = float3(mul(modelView, position));
 	float3 tmpVec = lightPosition.xyz - vVertex;
