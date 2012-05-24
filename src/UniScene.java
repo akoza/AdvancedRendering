@@ -138,7 +138,7 @@ public class UniScene extends JoglTemplate {
 		CgGL.cgGLLoadProgram(cgBumpF);
 		
 		cgBloomAlpha = CgGL.cgGetNamedParameter(cgSSAO, "alpha");			
-		cgThresh = CgGL.cgGetNamedParameter(cgBumpF, "threshold");
+		cgThresh = CgGL.cgGetNamedParameter(cgSSAO, "threshold");
 		cgModelProj = CgGL.cgGetNamedParameter(cgVP, "modelViewProj");
 		cgLightPosition = CgGL.cgGetNamedParameter(cgBumpV, "lightPosition");
 		cgModelViewProj = CgGL.cgGetNamedParameter(cgBumpV, "modelViewProj");		
@@ -166,7 +166,7 @@ public class UniScene extends JoglTemplate {
     	
     	cam = new Camera();
 
-    	loadShaders();
+    	loadShaders();    	
     	
     	loadCampus();
     	loadLights();
@@ -240,7 +240,7 @@ public class UniScene extends JoglTemplate {
 	
 		if (ssao){		
 			CgGL.cgGLSetParameter1f(cgBloomAlpha, alpha);			
-			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);
+			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);			
 			CgGL.cgGLEnableProfile(cgFragProfile);
 			CgGL.cgGLBindProgram(cgSSAO);	
     		drawToScreen();    		
@@ -329,15 +329,11 @@ public class UniScene extends JoglTemplate {
 				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);		
 		CgGL.cgGLSetStateMatrixParameter(cgModelProj,
 				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);		
-		Texture randTex = genRandTex();
-		gl.glActiveTexture(GL.GL_TEXTURE2);
-		randTex.bind();
-		gl.glActiveTexture(GL.GL_TEXTURE0);
+		
 		CgGL.cgGLSetParameter1f(cgBump, bump?1:0);
 		sceneBump.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]});
 		CgGL.cgGLSetParameter1f(cgBump, 0);
 		scene.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]});
-		randTex.dispose();
 
 		
     	CgGL.cgGLDisableProfile(cgFragProfile);
@@ -360,7 +356,8 @@ public class UniScene extends JoglTemplate {
 				
 		gl.glOrtho(0, texWidth, 0, texHeight, -1, 1);
 		gl.glActiveTexture(GL.GL_TEXTURE0);		
-		gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);		
+		gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);	
+		Texture celRand = null;
 		if (ssao){			
 			gl.glActiveTexture(GL.GL_TEXTURE1);		
 			gl.glBindTexture(GL.GL_TEXTURE_2D, depthTexId);
@@ -368,6 +365,9 @@ public class UniScene extends JoglTemplate {
 			gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexNormals);
 			gl.glActiveTexture(GL.GL_TEXTURE3);			
 			randTex.bind();
+			gl.glActiveTexture(GL.GL_TEXTURE4);
+			celRand = genRandTex();
+			celRand.bind();			
 			gl.glActiveTexture(GL.GL_TEXTURE0);
 		}
 		else
@@ -386,7 +386,9 @@ public class UniScene extends JoglTemplate {
 		gl.glBindTexture(GL.GL_TEXTURE_2D, 0);		
 		
 		if (!ssao)
-			gl.glDisable(GL.GL_TEXTURE_2D);		
+			gl.glDisable(GL.GL_TEXTURE_2D);	
+		else
+			celRand.dispose();
 		gl.glPopMatrix();
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glPopMatrix();

@@ -3,19 +3,65 @@ struct vertexIN
   float2 texcoord	: TEXCOORD0;    
 };
 
+bool eq (float3 s, float3 t){
+	return !(s.x == t.x && s.y == t.y && s.z == t.z);
+}
+
 float4 main(vertexIN vIN, 
-			uniform float alpha,
-			uniform float threshold,					
+			uniform float threshold,
+			uniform float alpha,							
 			uniform sampler2D tex : TEXUNIT0,
 			uniform sampler2D depth : TEXUNIT1,
 			uniform sampler2D normals : TEXUNIT2,
-			uniform sampler2D rand : TEXUNIT3):COLOR {					
+			uniform sampler2D rand : TEXUNIT3,
+			uniform sampler2D celRand : TEXUNIT4):COLOR {					
 			
-
-
 	float x = vIN.texcoord.x;
-	float y = vIN.texcoord.y;	
+	float y = vIN.texcoord.y;
 	
+	if (threshold != 0 && tex2D(celRand, float2(x,y)).r <= threshold*0.05){
+		//Compute Toon
+		float3 c = tex2D(tex, float2(x,y)).xyz;
+		float cL = length(c);
+		float f = 1.0;			
+		
+		if (cL < 0.2)
+			f = 0.7;
+		else if (cL < 0.4)
+			f  = 0.9;
+		else if (cL < 0.5)
+			f = 0.95;
+		
+		float pixelSizeX = 0.0015f, pixelSizeY = 0.0015f;	
+		
+		float r = 1.0, g = 1.0, b = 1.0;
+			
+		float3 z = tex2D(normals,float2(x,y)).xyz;
+		
+	    if(eq(z,tex2D(normals,float2(x+pixelSizeX,y)).xyz)){
+	        f*=0.3;
+	    }else if(eq(z,tex2D(normals,float2(x+pixelSizeX*2.0,y)).xyz)){
+	        f*=0.8;
+	    }
+	    if(eq(z,tex2D(normals,float2(x-pixelSizeX,y)).xyz)){
+	        f*=0.3;
+	    }else if(eq(z,tex2D(normals,float2(x-pixelSizeX*2.0,y)).xyz)){
+	        f*=0.8;
+	    }
+	    if(eq(z,tex2D(normals,float2(x,y-pixelSizeY)).xyz)){
+	        f*=0.3;
+	    }else if(eq(z,tex2D(normals,float2(x,y-pixelSizeY*2.0)).xyz)){
+	        f*=0.8;
+	    }
+	    if(eq(z,tex2D(normals,float2(x,y+pixelSizeY)).xyz)){
+	        f*=0.3;
+	    }else if(eq(z,tex2D(normals,float2(x,y+pixelSizeY*2.0)).xyz)){
+	        f*=0.8;
+	    }
+	        
+	    c = float3(r,g,b)*f;    
+	    return float4(tex2D(tex, float2(x,y)).xyz*c, 1);
+    }
 	//Compute Bloom
 	float4 sum = {0,0,0,0};
 	float4 bloomOut;
@@ -35,6 +81,9 @@ float4 main(vertexIN vIN,
 	alpha = alpha*0.05;
 	
 	bloomOut = alpha*bloomOut + (1-alpha)*tex2D(tex, float2(x,y));
+	
+	if (alpha > 0)
+		return bloomOut;
 	
 	float debugBorder = 0.0;
 	float totStrength = 1.38;
@@ -68,7 +117,7 @@ float4 main(vertexIN vIN,
  
    float4 currentPixelSample = tex2D(normals,float2(x,y));
  
-   float currentPixelDepth = tex2D(depth, float2(x,y));
+   float currentPixelDepth = tex2D(depth, float2(x,y)).r;
  
    // current fragment coords in screen space
    float3 ep = float3(float2(x,y),currentPixelDepth);
@@ -97,7 +146,7 @@ float4 main(vertexIN vIN,
       occNorm = occluderFragment.xyz;
  
       // if depthDifference is negative = occluder is behind current fragment
-      depthDifference = currentPixelDepth-tex2D(depth, se.xy);
+      depthDifference = currentPixelDepth-tex2D(depth, se.xy).r;
  
       // calculate the difference between the normals as a weight
  
@@ -107,9 +156,9 @@ float4 main(vertexIN vIN,
    }
  
    // output the result
-   float ao = 1.0-totStrength*bl*invSamples;   
-   if (x >= debugBorder)
-   	return float4(ao*bloomOut.xyz,1);
-   return bloomOut;   	  
+   float ao = 1.0-totStrength*bl*invSamples;      
+   if (x >= debugBorder)   
+   	return float4(ao*tex2D(tex, float2(x,y)).xyz,1);   
+   return tex2D(tex, float2(x,y));   	  
 
 }
