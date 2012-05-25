@@ -168,6 +168,8 @@ public class UniScene extends JoglTemplate {
 
     	loadShaders();    	
     	
+    	loadClock();
+    	
     	loadCampus();
     	loadLights();
     	loadSky();
@@ -313,30 +315,25 @@ public class UniScene extends JoglTemplate {
     }   
     
     private void drawToFBO(boolean bump){        	    
-    	        	       
-    	update_uhr();
+    	
+    	update_uhr();    	
     	
 		gl.glClearColor(0,1,1,0);
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 		gl.glPushMatrix();		
 		/*applyMouseTranslation(gl);
 		applyMouseRotation(gl);*/		
-		glu.gluLookAt(cam.pos[0], cam.pos[1], cam.pos[2], cam.at[0], cam.at[1], cam.at[2], cam.up[0], cam.up[1], cam.up[2]);			    
-				
-		CgGL.cgGLSetStateMatrixParameter(cgModelView, 
-				CgGL.CG_GL_MODELVIEW_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
-		CgGL.cgGLSetStateMatrixParameter(cgModelViewProj,
-				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);		
-		CgGL.cgGLSetStateMatrixParameter(cgModelProj,
-				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);		
+		glu.gluLookAt(cam.pos[0], cam.pos[1], cam.pos[2], cam.at[0], cam.at[1], cam.at[2], cam.up[0], cam.up[1], cam.up[2]);			
+						
 		
 		CgGL.cgGLSetParameter1f(cgBump, bump?1:0);
-		sceneBump.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]});
+		sceneBump.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]}, new CGparameter[] {cgModelProj, cgModelViewProj, cgModelView});
 		CgGL.cgGLSetParameter1f(cgBump, 0);
-		scene.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]});
+		scene.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]}, new CGparameter[] {cgModelProj, cgModelViewProj, cgModelView});
 
+				
 		
-    	CgGL.cgGLDisableProfile(cgFragProfile);
+		CgGL.cgGLDisableProfile(cgFragProfile);
     	CgGL.cgGLDisableProfile(cgVertexProfile);
 		
         gl.glPopMatrix();                            
@@ -395,24 +392,32 @@ public class UniScene extends JoglTemplate {
     }
     
     private void loadCampus(){
-    	sceneBump.addChild(new ObjectSceneNode(gl, "src/models/ground"));    	//src/models/Campus
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/a"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/b"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/c"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/d"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/g"));   
-    	//scene.addChild(new ObjectSceneNode(gl, "src/models/steine")); 
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/ground"));    //src/models/Campus
+        scene.addChild(new ObjectSceneNode(gl, "src/models/a"));  
+        scene.addChild(new ObjectSceneNode(gl, "src/models/b"));  
+        scene.addChild(new ObjectSceneNode(gl, "src/models/c"));  
+        scene.addChild(new ObjectSceneNode(gl, "src/models/d"));  
+        scene.addChild(new ObjectSceneNode(gl, "src/models/g"));   
+        scene.addChild(new ObjectSceneNode(gl, "src/models/steine"));         
+        scene.addChild(new ObjectSceneNode(gl, "src/models/me"));  
+        scene.addChild(new ObjectSceneNode(gl, "src/models/brunnen")); 
+        scene.addChild(new ObjectSceneNode(gl, "src/models/buesche1")); 
+        scene.addChild(new ObjectSceneNode(gl, "src/models/bank1")); 
+        scene.addChild(new ObjectSceneNode(gl, "src/models/lampe1")); 
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/baum"));     	
+    }
+    
+    private void loadClock(){
     	scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_basic"));  
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_h"));  
-    	uhr_h = scene.children.getLast();
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_min")); 
-    	uhr_min = scene.children.getLast();
-    	scene.addChild(new ObjectSceneNode(gl, "src/models/uhr_sek"));
-    	uhr_sek = scene.children.getLast();
-    	//scene.addChild(new ObjectSceneNode(gl, "src/models/me"));  
-    	//scene.addChild(new ObjectSceneNode(gl, "src/models/brunnen")); 
-    	//scene.addChild(new ObjectSceneNode(gl, "src/models/buesche1")); 
-    	//scene.addChild(new ObjectSceneNode(gl, "src/models/baum1")); 
+    	uhr_h = new ObjectSceneNode(gl, "src/models/uhr_h");
+    	uhr_h.translate(-55.5f, 3.4f, -49.2f);
+    	scene.addChild(uhr_h);
+    	uhr_min = new ObjectSceneNode(gl, "src/models/uhr_min");
+    	uhr_min.translate(-55.5f, 3.4f, -47.6f);
+    	scene.addChild(uhr_min);
+    	uhr_sek = new ObjectSceneNode(gl, "src/models/uhr_sek");
+    	uhr_sek.translate(-55.5f, 3.4f, -46f);
+    	scene.addChild(uhr_sek);
     }
     
     private void loadLights(){
@@ -515,7 +520,7 @@ public class UniScene extends JoglTemplate {
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent e)
-	{
+	{uhr_h.translate(-55.5f, 3.4f, -49.2f);
 		cam.zoomIn(e.getWheelRotation() * 2.8f);
 	}
 	
@@ -523,13 +528,10 @@ public class UniScene extends JoglTemplate {
 		   	java.util.Calendar today = new java.util.GregorianCalendar();
 		   	int std = today.get(Calendar.HOUR_OF_DAY);
 		   	int min = today.get(Calendar.MINUTE);
-		   	int sek = today.get(Calendar.SECOND);		   	
-		   	uhr_sek.translate(-55.5f, 3.4f, -46f);
-		   	uhr_sek.rotate(sek*6,0,0);
-		   	uhr_min.translate(-55.5f, 3.4f, -47.6f);
-		   	uhr_min.rotate(min*6,0,0);
-		   	uhr_h.translate(-55.5f, 3.4f, -49.2f);
-		   	uhr_h.rotate(std*30,0,0);
+		   	int sek = today.get(Calendar.SECOND);		   			   	
+		   	uhr_sek.rotate(sek*6,0,0);		   	
+		   	uhr_min.rotate(min*6,0,0);		   	
+		   	uhr_h.rotate(std*30,0,0);		   	
 	   }
 
 }

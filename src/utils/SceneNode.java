@@ -5,6 +5,9 @@ import java.util.Vector;
 
 import javax.media.opengl.GL;
 
+import com.sun.opengl.cg.CGparameter;
+import com.sun.opengl.cg.CgGL;
+
 
 abstract public class SceneNode {
 
@@ -12,6 +15,7 @@ abstract public class SceneNode {
 
 	protected LinkedList<SceneNode> children;
 	protected SceneNode parent;
+	protected boolean debug;
 	
 	GL gl;
 	
@@ -99,16 +103,22 @@ abstract public class SceneNode {
 		return parent;
 	}
 	
-	public void draw (boolean drawBounds){
-		gl.glPushMatrix();				
+	public void draw (boolean drawBounds, CGparameter[] param){
+		gl.glPushMatrix();								
 		gl.glTranslatef(trans[0], trans[1], trans[2]);
 		gl.glScalef(scale[0], scale[1], scale[2]);
 		gl.glRotatef(rot[0], 1, 0, 0);
 		gl.glRotatef(rot[1], 0, 1, 0);
 		gl.glRotatef(rot[2], 0, 0, 1);	
+		for (int i = 0; i < param.length-1; ++i)
+			CgGL.cgGLSetStateMatrixParameter(param[i],
+				CgGL.CG_GL_MODELVIEW_PROJECTION_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
+		if (param.length > 0)
+			CgGL.cgGLSetStateMatrixParameter(param[param.length-1],
+				CgGL.CG_GL_MODELVIEW_MATRIX, CgGL.CG_GL_MATRIX_IDENTITY);
 		drawMe();		
 		if (drawBounds)
-			drawBounds();
+			drawBounds();		
 		gl.glPopMatrix();
 	}	
 	
@@ -226,9 +236,9 @@ abstract public class SceneNode {
 	
 	abstract public void drawMe();
 	
-	public void drawSorted(boolean drawBounds, float[] cameraPos){
+	public void drawSorted(boolean drawBounds, float[] cameraPos, CGparameter[] param){
 		if (children.size() == 0){
-			draw(drawBounds);
+			draw(drawBounds, param);
 			return;
 		}		
 		AlphaComp acom = new AlphaComp(cameraPos);
@@ -244,7 +254,7 @@ abstract public class SceneNode {
 			gl.glScalef(scale[0], scale[1], scale[2]);
 			gl.glRotatef(rot[0], 1, 0, 0);
 			gl.glRotatef(rot[1], 0, 1, 0);
-			gl.glRotatef(rot[2], 0, 0, 1);	
+			gl.glRotatef(rot[2], 0, 0, 1);				
 			
 			if (drawBounds)
 				drawBounds();
@@ -252,7 +262,7 @@ abstract public class SceneNode {
 			Collections.sort(children, acom);
 			ListIterator<SceneNode> it = children.listIterator();			
 			while (it.hasNext())
-				it.next().drawSorted(drawBounds, cameraPos);
+				it.next().drawSorted(drawBounds, cameraPos, param);
 			
 			gl.glPopMatrix();
 		}
