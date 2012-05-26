@@ -48,7 +48,7 @@ public class UniScene extends JoglTemplate {
 	private GL gl;
 	private GLU glu;
 	private GLUT glut;	
-	private int texWidth = 1440, texHeight = 900;
+	private int texWidth = 1920, texHeight = 1200;
 	
 	//Uhr:
 	private SceneNode uhr_sek;
@@ -397,14 +397,22 @@ public class UniScene extends JoglTemplate {
         scene.addChild(new ObjectSceneNode(gl, "src/models/b"));  
         scene.addChild(new ObjectSceneNode(gl, "src/models/c"));  
         scene.addChild(new ObjectSceneNode(gl, "src/models/d"));  
-        scene.addChild(new ObjectSceneNode(gl, "src/models/g"));   
-        scene.addChild(new ObjectSceneNode(gl, "src/models/steine"));         
+        scene.addChild(new ObjectSceneNode(gl, "src/models/g")); 
+        scene.addChild(new ObjectSceneNode(gl, "src/models/g_schrift"));               
         scene.addChild(new ObjectSceneNode(gl, "src/models/me"));  
         scene.addChild(new ObjectSceneNode(gl, "src/models/brunnen")); 
-        scene.addChild(new ObjectSceneNode(gl, "src/models/buesche1")); 
         scene.addChild(new ObjectSceneNode(gl, "src/models/bank1")); 
-        scene.addChild(new ObjectSceneNode(gl, "src/models/lampe1")); 
-        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/baum"));     	
+        scene.addChild(new ObjectSceneNode(gl, "src/models/bank2")); 
+        scene.addChild(new ObjectSceneNode(gl, "src/models/lampe1"));    
+        scene.addChild(new ObjectSceneNode(gl, "src/models/buchstaben"));
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/steine"));
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/baeume"));    
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche1")); 
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche2"));
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche3"));
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche4"));
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche5"));
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche6"));
     }
     
     private void loadClock(){
@@ -423,13 +431,15 @@ public class UniScene extends JoglTemplate {
     private void loadLights(){
     	gl.glEnable(GL.GL_LIGHTING);
 		gl.glEnable(GL.GL_LIGHT0);
-		float[] light = { 0.3f, 0.3f, 0.3f, 1, 1,1,1,1,1,1,1,1 };
-		gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, new float[]{119,40f,147,0f}, 0);
-		gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[]{0.3f, 0.3f, 0.3f, 1}, 0);
-		gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, new float[]{1,1,1,1}, 0);
-		gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[]{1,1,1,1}, 0);
-		CgGL.cgGLSetParameter3fv(cgLightPosition, new float[]{119,40f,147,0f}, 0);
-		CgGL.cgGLSetParameter3fv(cgIa,light, 0);
+		float[] light = {0.6f, 0.6f, 0.6f, 1, 
+						1f, 1f, 1f, 1, 
+						1f, 1f, 1f, 1};
+		gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, new float[]{119f, 40f, 147f, 1f}, 0); 
+		gl.glLightfv(GL.GL_LIGHT0, GL.GL_AMBIENT, new float[]{0.6f, 0.6f, 0.6f, 1}, 0);
+		gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, new float[]{1f, 1f, 1f, 1f}, 0);
+		gl.glLightfv(GL.GL_LIGHT0, GL.GL_SPECULAR, new float[]{1f, 1f, 1f, 1f}, 0);
+		CgGL.cgGLSetParameter3fv(cgLightPosition, new float[]{119f, 40f, 147f, 1f}, 0);
+		CgGL.cgGLSetParameter3fv(cgIa, light, 0);
 		CgGL.cgGLSetParameter3fv(cgId, light, 4);	
 		/*gl.glEnable(GL.GL_LIGHT1);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, new float[]{-119f,40f,147f,1f}, 0);

@@ -16,7 +16,7 @@ void main (	float3 objectSpacePos: TEXCOORD4,
 
 	float distSqr = dot(lightVec, lightVec);
 	//float att = clamp(1.0 - invRadius * sqrt(distSqr), 0.0, 1.0);
-	float att = clamp(sqrt(distSqr), 0.0, 1.0);
+	//float att = clamp(sqrt(distSqr), 0.0, 1.0);
 	float3 lVec = lightVec * inversesqrt(distSqr);
 
 	float3 vVec = normalize(eyeVec);
@@ -39,5 +39,5 @@ void main (	float3 objectSpacePos: TEXCOORD4,
 	if (bumpP == 0)
 		color = base;
 	else
-		color = ( vAmbient*base + vDiffuse*base) * att;				
+		color = ( vAmbient*base + vDiffuse*base) ;// * att;				
 }
