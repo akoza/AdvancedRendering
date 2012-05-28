@@ -9,17 +9,20 @@ bool eq (float3 s, float3 t){
 
 float4 main(vertexIN vIN, 
 			uniform float threshold,
-			uniform float alpha,							
+			uniform float alpha,	
+			uniform float toneCheat,							
 			uniform sampler2D tex : TEXUNIT0,
 			uniform sampler2D depth : TEXUNIT1,
 			uniform sampler2D normals : TEXUNIT2,
-			uniform sampler2D rand : TEXUNIT3,
-			uniform sampler2D celRand : TEXUNIT4):COLOR {					
+			uniform sampler2D rand : TEXUNIT3):COLOR {					
 			
 	float x = vIN.texcoord.x;
 	float y = vIN.texcoord.y;
 	
-	if (threshold != 0 && tex2D(celRand, float2(x,y)).r <= threshold*0.05){
+	if (toneCheat != 0)	
+		return float4(tex2D(tex, float2(x,y)).xyz+toneCheat, 1);
+	
+	if (threshold != 0 && tex2D(rand, float2(x,y)).r <= threshold*0.05){
 		//Compute Toon
 		float3 c = tex2D(tex, float2(x,y)).xyz;
 		float cL = length(c);
@@ -63,27 +66,26 @@ float4 main(vertexIN vIN,
 	    return float4(tex2D(tex, float2(x,y)).xyz*c, 1);
     }
 	//Compute Bloom
-	float4 sum = {0,0,0,0};
-	float4 bloomOut;
-	for (int i = -4; i < 4; ++i)
-		for (int j = -3; j < 3; ++j)
-			sum += tex2D(tex, float2(x,y)+float2(j,i)*0.004)*0.25;
-			
-	if (tex2D(tex, float2(x,y)).r < 0.3)
-		bloomOut = sum*sum*0.012 + tex2D(tex, float2(x,y));
-	else{
-		if (tex2D(tex, float2(x,y)).r < 0.5)
-			bloomOut = sum*sum*0.009 + tex2D(tex, float2(x,y));
-		else
-			bloomOut = sum*sum*0.0075 + tex2D(tex, float2(x,y));
-	}
-	
-	alpha = alpha*0.05;
-	
-	bloomOut = alpha*bloomOut + (1-alpha)*tex2D(tex, float2(x,y));
-	
-	if (alpha > 0)
+	if (alpha > 0){	
+		float4 sum = {0,0,0,0};
+		float4 bloomOut;
+		for (int i = -4; i < 4; ++i)
+			for (int j = -3; j < 3; ++j)
+				sum += tex2D(tex, float2(x,y)+float2(j,i)*0.004)*0.25;
+				
+		if (tex2D(tex, float2(x,y)).r < 0.3)
+			bloomOut = sum*sum*0.012 + tex2D(tex, float2(x,y));
+		else{
+			if (tex2D(tex, float2(x,y)).r < 0.5)
+				bloomOut = sum*sum*0.009 + tex2D(tex, float2(x,y));
+			else
+				bloomOut = sum*sum*0.0075 + tex2D(tex, float2(x,y));
+		}		
+		
+		bloomOut = alpha*bloomOut + (1-alpha)*tex2D(tex, float2(x,y));
+		
 		return bloomOut;
+	}
 	
 	float debugBorder = 0.0;
 	float totStrength = 1.38;
@@ -112,12 +114,15 @@ float4 main(vertexIN vIN,
 		float3(0.035267662, -0.063188605, 0.54602677),
 		float3(-0.47761092, 0.2847911, -0.0271716)
 	);
+	
+	float currentPixelDepth = tex2D(depth, float2(x,y)).r;
+	
+	//if (currentPixelDepth > 0.99)
+	//	return tex2D(tex, float2(x,y));	
 
    float3 fres = normalize((tex2D(rand,float2(x,y)*offset).xyz*2.0) - float3(1.0));
  
-   float4 currentPixelSample = tex2D(normals,float2(x,y));
- 
-   float currentPixelDepth = tex2D(depth, float2(x,y)).r;
+   float4 currentPixelSample = tex2D(normals,float2(x,y));   
  
    // current fragment coords in screen space
    float3 ep = float3(float2(x,y),currentPixelDepth);
@@ -156,7 +161,8 @@ float4 main(vertexIN vIN,
    }
  
    // output the result
-   float ao = 1.0-totStrength*bl*invSamples;      
+   float ao = 1.0-totStrength*bl*invSamples;
+        
    if (x >= debugBorder)   
    	return float4(ao*tex2D(tex, float2(x,y)).xyz,1);   
    return tex2D(tex, float2(x,y));   	  
