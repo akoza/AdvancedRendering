@@ -44,11 +44,11 @@ public class UniScene extends JoglTemplate {
 
 	private static final long serialVersionUID = 1L;
 		
-	private InnerSceneNode scene, sceneBump;	
+	private InnerSceneNode scene, sceneBump;
 	private GL gl;
 	private GLU glu;
 	private GLUT glut;	
-	private int texWidth = 1920, texHeight = 1200;
+	private int texWidth = 1680, texHeight = 1050;
 	
 	//Uhr:
 	private SceneNode uhr_sek;
@@ -59,7 +59,7 @@ public class UniScene extends JoglTemplate {
 
 	private CGcontext cgContext;
 	private CGprogram cgSSAO = null, cgVP = null, cgFP = null, cgBumpV = null, cgBumpF = null, cgPhongV = null, cgPhongF = null;
-	private CGparameter cgModelProj, cgBloomAlpha, cgThresh;
+	private CGparameter cgModelProj, cgBloomAlpha, cgThresh, cgToneCheat;
 	private CGparameter cgModelView, cgModelViewProj, cgLightPosition;
 	private CGparameter cgIa, cgId, cgBump;	
 	private int cgVertexProfile, cgFragProfile;
@@ -67,6 +67,7 @@ public class UniScene extends JoglTemplate {
 	public static void main(String[] args) {
     	UniScene template = new UniScene();
     	template.setVisible(true);
+    	template.setTitle("Awakening");
     }
 
 	public void reshape(GLAutoDrawable drawable, int x, int y, int width,
@@ -139,6 +140,7 @@ public class UniScene extends JoglTemplate {
 		
 		cgBloomAlpha = CgGL.cgGetNamedParameter(cgSSAO, "alpha");			
 		cgThresh = CgGL.cgGetNamedParameter(cgSSAO, "threshold");
+		cgToneCheat = CgGL.cgGetNamedParameter(cgSSAO, "toneCheat");		
 		cgModelProj = CgGL.cgGetNamedParameter(cgVP, "modelViewProj");
 		cgLightPosition = CgGL.cgGetNamedParameter(cgBumpV, "lightPosition");
 		cgModelViewProj = CgGL.cgGetNamedParameter(cgBumpV, "modelViewProj");		
@@ -155,7 +157,7 @@ public class UniScene extends JoglTemplate {
     	glut = this.getGlut();
     	prepareFBO();
     	gl.glEnable(GL.GL_DEPTH_TEST);
-    	gl.glEnable(GL.GL_COLOR_MATERIAL);  
+    	//gl.glEnable(GL.GL_COLOR_MATERIAL);  
     	gl.glHint(GL.GL_LINE_SMOOTH_HINT, GL.GL_NICEST);
     	gl.glEnable(GL.GL_LINE_SMOOTH);
     	gl.glHint(GL.GL_POLYGON_SMOOTH_HINT, GL.GL_NICEST);
@@ -166,10 +168,10 @@ public class UniScene extends JoglTemplate {
     	
     	cam = new Camera();
 
-    	loadShaders();    	
+    	loadShaders();  	
     	
     	loadClock();
-    	
+    	loadFountain();
     	loadCampus();
     	loadLights();
     	loadSky();
@@ -179,14 +181,26 @@ public class UniScene extends JoglTemplate {
     
     public void keyPressed(KeyEvent e) {    
     	//super.keyPressed(e);
-    	
+    
+    	if (e.getKeyCode() == KeyEvent.VK_C){
+    		showcaseStart = System.currentTimeMillis(); 
+    		now = -1;
+    		cam.pos = new float[] {-93.9f, -6.8f, -178.0f};
+    		cam.at = new float[] {-92.5f, -7.0f, -171.1f};
+    		ssao = true;
+    		bump = true;
+    		celThreshold = 0;
+    		alpha = 0;
+    		toneCheat = 1;
+    	}
 		if(e.getKeyCode() == KeyEvent.VK_D) cam.moveRight(1);
 		if(e.getKeyCode() == KeyEvent.VK_A) cam.moveLeft(1);
 		if(e.getKeyCode() == KeyEvent.VK_W) cam.moveForward(1);
 		if(e.getKeyCode() == KeyEvent.VK_S) cam.moveBackward(1);
 		if(e.getKeyCode() == KeyEvent.VK_SPACE) cam.moveUp(1);
 		if(e.getKeyCode() == KeyEvent.VK_SHIFT) cam.moveDown(1);
-
+		
+		//System.out.println(cam.pos[0]+" "+cam.pos[1]+" "+cam.pos[2]+" ");
     	if (e.getKeyCode() == KeyEvent.VK_1){
     		ssao = !ssao;
     		System.out.println("Shader "+ssao);
@@ -195,7 +209,7 @@ public class UniScene extends JoglTemplate {
     		bump = !bump;
     		System.out.println("Normal Mapping Shader "+bump);
     	}
-    	if (e.getKeyCode() == KeyEvent.VK_UP && alpha < 20){
+    	if (e.getKeyCode() == KeyEvent.VK_UP && alpha < 100){
     		++alpha;
     		System.out.println("Bloom alpha "+alpha*0.05);
     	}
@@ -218,10 +232,13 @@ public class UniScene extends JoglTemplate {
     }
     
     boolean ssao = false, bump = false;
-    int alpha = 0, celThreshold = 0;
+    int alpha = 0, celThreshold = 0, toneCheat = 0;
+    long showcaseStart = -1, now = -1;    
     Random rand;
     
     public void display(GLAutoDrawable drawable) {
+    	//fps();
+    	now = System.currentTimeMillis() - showcaseStart;
     	
     	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, fboId);    	
 		CgGL.cgGLEnableProfile(cgVertexProfile);
@@ -240,9 +257,15 @@ public class UniScene extends JoglTemplate {
     	CgGL.cgGLDisableProfile(cgVertexProfile);
 	    CgGL.cgGLDisableProfile(cgFragProfile);    	
 	
+	    if (showcaseStart != -1 && now > 0){		    
+		    if (now/1000 < 3)
+		    	toneCheat = 100-(int)(now/30);		   
+	    }
+	    
 		if (ssao){		
-			CgGL.cgGLSetParameter1f(cgBloomAlpha, alpha);			
-			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);			
+			CgGL.cgGLSetParameter1f(cgBloomAlpha, alpha*0.01f);			
+			CgGL.cgGLSetParameter1f(cgThresh, celThreshold);
+			CgGL.cgGLSetParameter1f(cgToneCheat, toneCheat*0.01f);
 			CgGL.cgGLEnableProfile(cgFragProfile);
 			CgGL.cgGLBindProgram(cgSSAO);	
     		drawToScreen();    		
@@ -250,8 +273,7 @@ public class UniScene extends JoglTemplate {
     	}else{
     		
     		drawToScreen();    	
-    	}
-
+    	}	    
     }
     
     private int fboTexId, depthTexId;   
@@ -314,9 +336,116 @@ public class UniScene extends JoglTemplate {
     	gl.glBindFramebufferEXT(GL.GL_FRAMEBUFFER_EXT, 0);
     }   
     
+    boolean lr = true;
+    
     private void drawToFBO(boolean bump){        	    
     	
     	update_uhr();    	
+    	
+    	if (showcaseStart != -1 && now > 0){
+    		long nowS = now / 1000;
+    		if (nowS >=3 && nowS <= 16)
+    			toneCheat = 1;
+    		if (nowS >= 1 && nowS <= 2){
+    			if (lr)
+    				cam.moveToDesiredAt(-92.0f, -6.2f, -171.1f, 0.02f, 0.02f);
+    			else
+    				cam.moveToDesiredAt(-93.0f, -6.2f, -171.1f, 0.02f, 0.02f);
+    			if (cam.at[0] == -92.0f)
+    				lr = false;
+    			if (cam.at[0] == -93.0f)
+    				lr = true;    		    			   
+    		}
+    		if (nowS >= 2 && nowS <=4)
+				cam.moveToDesiredAt(-92.5f, -5.5f, -171.1f, 0.001f, 0.001f);
+    		if (nowS >=4 && nowS <=6){ //Aufstehen
+    			cam.moveToDesiredPosition(-93.9f, -4.8f, -178.0f, 0.003f, 0.003f);
+    			cam.moveToDesiredAt(-92.5f, -4.5f, -171.1f, 0.001f, 0.001f);
+    		}
+    		if (nowS > 6 && nowS <= 8){//Treppe
+    			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0005f, 0.0005f);
+    			cam.moveToDesiredAt(-60.3f, 1.4f, -120.8f, 0.001f, 0.001f);
+    		}
+      		if (nowS > 8 && nowS <= 10){//Baum
+    			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0005f, 0.0005f);
+    			cam.moveToDesiredAt(-80.2f, -1.8f, -109.0f, 0.001f, 0.001f);
+    		}
+      		if (nowS > 10 && nowS <= 16){//Baum2
+    			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0005f, 0.0005f);
+    			cam.moveToDesiredAt(-99.2f, 0.5f, -145.1f, 0.001f, 0.001f);
+    		}
+      		if (nowS > 16 && nowS <= 18){//Bloom Aufdrehen
+      			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0007f, 0.0007f);
+      			cam.moveToDesiredAt(-99.2f, -1f, -145.1f, 0.005f, 0.005f);
+      			if (now / 100 >= 175){
+      				alpha = (int)((now/100-174)/15.0 * 100);      			
+      				toneCheat = 0;
+      			}      			
+      		}
+      		if (nowS > 18 && nowS <= 19){//Kurz halten
+      			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0004f, 0.0004f);      			
+      		}
+      		if (nowS > 19 && nowS <= 23){// Bloom Zudrehen
+      			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0007f, 0.0007f);
+      			cam.moveToDesiredAt(-80.2f, -1.8f, -109.0f, 0.001f, 0.001f);
+      			alpha = 100 - (int)((now/100-200)/39.0*100);      			
+      			if (alpha == 0)
+      				toneCheat = 1;
+      		}
+      		if(nowS > 23 && nowS <= 27){//Weiter Richtung Innenhof
+      			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0007f, 0.0007f);
+      			cam.moveToDesiredAt(-80.2f, -1.8f, -109.0f, 0.002f, 0.002f);
+      		}
+      		if (nowS > 27 && nowS <= 35){
+      			cam.moveToDesiredPosition(-83.4f, -3.6f, -89.6f, 0.0007f, 0.0007f);
+      			cam.moveToDesiredAt(-70.3f, -2.2f, -87.5f, 0.002f, 0.002f);
+      		}
+      		if (nowS > 35 && nowS <= 50){
+      			cam.moveToDesiredPosition(-70.3f, -2.2f, -87.5f, 0.0007f, 0.0007f);
+      			cam.moveToDesiredAt(-83.1f, -1.6f, -68.5f, 0.002f, 0.002f);
+      		}
+      		if (nowS > 50 && nowS <= 52){
+      			if (nowS <= 51){
+	      			cam.moveToDesiredPosition(-70.3f, -2.2f, -87.5f, 0.0007f, 0.0007f);
+	      			cam.moveToDesiredAt(-83.1f, -1.6f, -68.5f, 0.002f, 0.002f);
+      			}
+      			toneCheat = 0;
+      			celThreshold = rand.nextInt(10)+10;
+      			lr = true;
+      		}
+      		if (nowS > 52 && nowS <= 60){
+      			celThreshold = 0;
+      			cam.moveToDesiredPosition(-70.3f, -2.2f, -87.5f, 0.0007f, 0.0007f);
+      			if (lr)
+      				cam.moveToDesiredAt(-90.1f, -1.6f, -68.5f, 0.01f, 0.01f);
+      			else
+      				cam.moveToDesiredAt(-70.1f, -1.6f, -68.5f, 0.01f, 0.01f);
+      			if ((nowS % 4) <= 1)
+      				lr = false;
+      			else
+      				lr = true;
+      		}
+      		if (nowS > 60 && nowS <= 75){
+      			cam.moveToDesiredPosition(-83.3f, -2.6f, -52.3f, 0.0015f, 0.0015f);
+      			cam.moveToDesiredAt(-57f, 3.1f, -47.1f, 0.002f, 0.002f);      			
+      		}
+      		if (nowS > 75 && nowS <= 85){
+      			cam.moveToDesiredPosition(-83.3f, -2.6f, -52.3f, 0.0015f, 0.0015f);
+      			cam.moveToDesiredAt(-50.3f, 5f, -87.5f, 0.002f, 0.002f);      			
+      		}
+      		if (nowS > 85 && nowS <= 87){
+      			cam.moveToDesiredPosition(-83.3f, -2.6f, -42.3f, 0.0015f, 0.0015f);
+      			celThreshold = ((int)now/100-860);
+      		}
+      		if (nowS > 87 && nowS <= 88){      			
+      			celThreshold = 21;
+      		}
+      		if (nowS > 89 && nowS <= 91){
+      			cam.moveToDesiredAt(-50.3f, 100f, -87.5f, 0.01f, 0.01f);
+      			toneCheat = -(((int)now/10-8900)/2);
+      		}
+      		
+    	}
     	
 		gl.glClearColor(0,1,1,0);
 		gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
@@ -329,17 +458,17 @@ public class UniScene extends JoglTemplate {
 		CgGL.cgGLSetParameter1f(cgBump, bump?1:0);
 		sceneBump.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]}, new CGparameter[] {cgModelProj, cgModelViewProj, cgModelView});
 		CgGL.cgGLSetParameter1f(cgBump, 0);
-		scene.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]}, new CGparameter[] {cgModelProj, cgModelViewProj, cgModelView});
-
+		scene.drawSorted(false, new float[] {cam.pos[0], cam.pos[1], cam.pos[2]}, new CGparameter[] {cgModelProj, cgModelViewProj, cgModelView});		
 				
 		
 		CgGL.cgGLDisableProfile(cgFragProfile);
     	CgGL.cgGLDisableProfile(cgVertexProfile);
+ 
 		
         gl.glPopMatrix();                            
     }
     
-    private Texture randTex = null;
+    private Texture randTex = null, celRand = null;   
     
     private void drawToScreen(){
     	gl.glPushMatrix();	    	
@@ -353,18 +482,14 @@ public class UniScene extends JoglTemplate {
 				
 		gl.glOrtho(0, texWidth, 0, texHeight, -1, 1);
 		gl.glActiveTexture(GL.GL_TEXTURE0);		
-		gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);	
-		Texture celRand = null;
+		gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexId);		
 		if (ssao){			
 			gl.glActiveTexture(GL.GL_TEXTURE1);		
 			gl.glBindTexture(GL.GL_TEXTURE_2D, depthTexId);
 			gl.glActiveTexture(GL.GL_TEXTURE2);
 			gl.glBindTexture(GL.GL_TEXTURE_2D, fboTexNormals);
 			gl.glActiveTexture(GL.GL_TEXTURE3);			
-			randTex.bind();
-			gl.glActiveTexture(GL.GL_TEXTURE4);
-			celRand = genRandTex();
-			celRand.bind();			
+			randTex.bind();			
 			gl.glActiveTexture(GL.GL_TEXTURE0);
 		}
 		else
@@ -384,11 +509,24 @@ public class UniScene extends JoglTemplate {
 		
 		if (!ssao)
 			gl.glDisable(GL.GL_TEXTURE_2D);	
-		else
-			celRand.dispose();
 		gl.glPopMatrix();
 		gl.glMatrixMode(GL.GL_MODELVIEW);
 		gl.glPopMatrix();
+    }
+    
+    private void loadFountain(){
+    	ParticleSystemNode one = new ParticleSystemNode(gl);
+    	one.translate(-84.36f, -4.9f, -71.45f);    	
+    	scene.addChild(one);
+    	one = new ParticleSystemNode(gl);
+    	one.translate(-87.07f, -4.9f, -68.2f);
+    	scene.addChild(one);
+    	one = new ParticleSystemNode(gl);
+    	one.translate(-84.36f, -4.9f, -68.2f);
+    	scene.addChild(one);
+    	one = new ParticleSystemNode(gl);
+    	one.translate(-87.07f, -4.9f, -71.45f);
+    	scene.addChild(one);
     }
     
     private void loadCampus(){
@@ -412,7 +550,7 @@ public class UniScene extends JoglTemplate {
         sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche3"));
         sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche4"));
         sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche5"));
-        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche6"));
+        sceneBump.addChild(new ObjectSceneNode(gl, "src/models/buesche6"));	
     }
     
     private void loadClock(){
@@ -442,11 +580,11 @@ public class UniScene extends JoglTemplate {
 		CgGL.cgGLSetParameter3fv(cgIa, light, 0);
 		CgGL.cgGLSetParameter3fv(cgId, light, 4);	
 		/*gl.glEnable(GL.GL_LIGHT1);
-		gl.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, new float[]{-119f,40f,147f,1f}, 0);
-		gl.glLightfv(GL.GL_LIGHT1, GL.GL_AMBIENT, new float[]{0.3f, 0.3f, 0.3f, 1}, 0);
+		gl.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, new float[]{-86, 2, -69,1f}, 0);
+		gl.glLightfv(GL.GL_LIGHT1, GL.GL_AMBIENT, new float[]{1,1,1, 1}, 0);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_DIFFUSE, new float[]{1,1,1,1}, 0);
 		gl.glLightfv(GL.GL_LIGHT1, GL.GL_SPECULAR, new float[]{1,1,1,1}, 0);
-		gl.glEnable(GL.GL_LIGHT2);
+		/*gl.glEnable(GL.GL_LIGHT2);
 		gl.glLightfv(GL.GL_LIGHT2, GL.GL_POSITION, new float[]{119f,40f,-147f,1f}, 0);
 		gl.glLightfv(GL.GL_LIGHT2, GL.GL_AMBIENT, new float[]{0.3f, 0.3f, 0.3f, 1}, 0);
 		gl.glLightfv(GL.GL_LIGHT2, GL.GL_DIFFUSE, new float[]{1,1,1,1}, 0);
@@ -527,11 +665,13 @@ public class UniScene extends JoglTemplate {
 			cam.pos[2] -= lengthZ2;
 			cam.at[2] -= lengthZ2;
 		}
+		//System.out.println(cam.pos[0]+" "+cam.pos[1]+" "+cam.pos[2]+" ");
 	}
 
 	public void mouseWheelMoved(MouseWheelEvent e)
-	{uhr_h.translate(-55.5f, 3.4f, -49.2f);
+	{
 		cam.zoomIn(e.getWheelRotation() * 2.8f);
+		System.out.println(cam.pos[0]+" "+cam.pos[1]+" "+cam.pos[2]+" ");
 	}
 	
 	private void update_uhr(){
@@ -543,5 +683,24 @@ public class UniScene extends JoglTemplate {
 		   	uhr_min.rotate(min*6,0,0);		   	
 		   	uhr_h.rotate(std*30,0,0);		   	
 	   }
+	
+	private long previousTime = 0, frameCount = 0;
+	
+	private void fps(){
+		if (previousTime == 0)
+			previousTime = System.currentTimeMillis();
+		++frameCount;
+		
+		long currentTime = System.currentTimeMillis();
+		long interval = currentTime - previousTime;
+		
+		if (interval > 1000){
+			System.out.println(frameCount/(interval/1000.0));
+			
+			previousTime = currentTime;
+			
+			frameCount = 0;
+		}
+	}
 
 }
