@@ -342,7 +342,7 @@ public class UniScene extends JoglTemplate {
     	
     	update_uhr();    	
     	
-    	if (showcaseStart != -1 && now > 0){
+     	if (showcaseStart != -1 && now > 0){
     		long nowS = now / 1000;
     		if (nowS >=3 && nowS <= 16)
     			toneCheat = 1;
@@ -370,41 +370,41 @@ public class UniScene extends JoglTemplate {
     			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0005f, 0.0005f);
     			cam.moveToDesiredAt(-80.2f, -1.8f, -109.0f, 0.001f, 0.001f);
     		}
-      		if (nowS > 10 && nowS <= 16){//Baum2
+      		if (nowS > 10 && nowS <= 17){//Baum2
     			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0005f, 0.0005f);
     			cam.moveToDesiredAt(-99.2f, 0.5f, -145.1f, 0.001f, 0.001f);
     		}
-      		if (nowS > 16 && nowS <= 18){//Bloom Aufdrehen
+      		if (nowS > 17 && nowS <= 19){//Bloom Aufdrehen
       			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0007f, 0.0007f);
       			cam.moveToDesiredAt(-99.2f, -1f, -145.1f, 0.005f, 0.005f);
-      			if (now / 100 >= 175){
-      				alpha = (int)((now/100-174)/15.0 * 100);      			
+      			if (now / 100 >= 185){
+      				alpha = (int)((now/100-184)/15.0 * 100);      			
       				toneCheat = 0;
       			}      			
       		}
-      		if (nowS > 18 && nowS <= 19){//Kurz halten
+      		if (nowS > 19 && nowS <= 20){//Kurz halten
       			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0004f, 0.0004f);      			
       		}
-      		if (nowS > 19 && nowS <= 23){// Bloom Zudrehen
+      		if (nowS > 20 && nowS <= 24){// Bloom Zudrehen
       			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0007f, 0.0007f);
       			cam.moveToDesiredAt(-80.2f, -1.8f, -109.0f, 0.001f, 0.001f);
-      			alpha = 100 - (int)((now/100-200)/39.0*100);      			
+      			alpha = 100 - (int)((now/100-210)/39.0*100);      			
       			if (alpha == 0)
       				toneCheat = 1;
       		}
-      		if(nowS > 23 && nowS <= 27){//Weiter Richtung Innenhof
+      		if(nowS > 24 && nowS <= 28){//Weiter Richtung Innenhof
       			cam.moveToDesiredPosition(-80.2f, -1.8f, -109.0f, 0.0007f, 0.0007f);
       			cam.moveToDesiredAt(-80.2f, -1.8f, -109.0f, 0.002f, 0.002f);
       		}
-      		if (nowS > 27 && nowS <= 35){
-      			cam.moveToDesiredPosition(-83.4f, -3.6f, -89.6f, 0.0007f, 0.0007f);
+      		if (nowS > 28 && nowS <= 36){
+      			cam.moveToDesiredPosition(-83.4f, -3.6f, -89.6f, 0.001f, 0.001f);
       			cam.moveToDesiredAt(-70.3f, -2.2f, -87.5f, 0.002f, 0.002f);
       		}
-      		if (nowS > 35 && nowS <= 50){
+      		if (nowS > 36 && nowS <= 51){
       			cam.moveToDesiredPosition(-70.3f, -2.2f, -87.5f, 0.0007f, 0.0007f);
       			cam.moveToDesiredAt(-83.1f, -1.6f, -68.5f, 0.002f, 0.002f);
       		}
-      		if (nowS > 50 && nowS <= 52){
+      		if (nowS > 51 && nowS <= 53){
       			if (nowS <= 51){
 	      			cam.moveToDesiredPosition(-70.3f, -2.2f, -87.5f, 0.0007f, 0.0007f);
 	      			cam.moveToDesiredAt(-83.1f, -1.6f, -68.5f, 0.002f, 0.002f);
@@ -413,7 +413,7 @@ public class UniScene extends JoglTemplate {
       			celThreshold = rand.nextInt(10)+10;
       			lr = true;
       		}
-      		if (nowS > 52 && nowS <= 60){
+      		if (nowS > 53 && nowS <= 61){
       			celThreshold = 0;
       			cam.moveToDesiredPosition(-70.3f, -2.2f, -87.5f, 0.0007f, 0.0007f);
       			if (lr)
@@ -425,24 +425,24 @@ public class UniScene extends JoglTemplate {
       			else
       				lr = true;
       		}
-      		if (nowS > 60 && nowS <= 75){
-      			cam.moveToDesiredPosition(-83.3f, -2.6f, -52.3f, 0.0015f, 0.0015f);
+      		if (nowS > 61 && nowS <= 76){
+      			cam.moveToDesiredPosition(-75.3f, -2.6f, -52.3f, 0.0015f, 0.0015f);
       			cam.moveToDesiredAt(-57f, 3.1f, -47.1f, 0.002f, 0.002f);      			
       		}
-      		if (nowS > 75 && nowS <= 85){
-      			cam.moveToDesiredPosition(-83.3f, -2.6f, -52.3f, 0.0015f, 0.0015f);
+      		if (nowS > 76 && nowS <= 86){
+      			cam.moveToDesiredPosition(-75.3f, -2.6f, -52.3f, 0.0015f, 0.0015f);
       			cam.moveToDesiredAt(-50.3f, 5f, -87.5f, 0.002f, 0.002f);      			
       		}
-      		if (nowS > 85 && nowS <= 87){
-      			cam.moveToDesiredPosition(-83.3f, -2.6f, -42.3f, 0.0015f, 0.0015f);
-      			celThreshold = ((int)now/100-860);
+      		if (nowS > 86 && nowS <= 88){
+      			cam.moveToDesiredPosition(-75.3f, -2.6f, -42.3f, 0.0015f, 0.0015f);
+      			celThreshold = ((int)now/100-870);
       		}
-      		if (nowS > 87 && nowS <= 88){      			
+      		if (nowS > 88 && nowS <= 89){      			
       			celThreshold = 21;
       		}
-      		if (nowS > 89 && nowS <= 91){
+      		if (nowS > 89 && nowS <= 92){
       			cam.moveToDesiredAt(-50.3f, 100f, -87.5f, 0.01f, 0.01f);
-      			toneCheat = -(((int)now/10-8900)/2);
+      			toneCheat = -(((int)now/10-9000)/2);
       		}
       		
     	}
